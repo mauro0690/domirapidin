@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DomiciliosRapidin | Consulta de Tarifas por Barrio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- App CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Top Corporate Navbar -->
+        <header class="navbar">
+            <div class="navbar-brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="brand-title">Domicilios Rapidin<span class="brand-badge">App</span></span>
+                    <span class="brand-subtitle">Plataforma Tarifaria de Domicilios</span>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="cotizador">
+                    <i class="fa-solid fa-calculator"></i> Cotizar Domicilio
+                </button>
+                <button class="nav-tab" data-tab="pedidos">
+                    <i class="fa-solid fa-boxes-packing"></i> Mis Domicilios
+                </button>
+                <button class="nav-tab" data-tab="profile" id="nav-tab-profile" style="display: none;">
+                    <i class="fa-solid fa-store"></i> Mi Negocio
+                </button>
+                <button class="nav-tab" data-tab="backend" style="display: none;">
+                    <i class="fa-solid fa-user-shield"></i> Panel Administrador
+                </button>
+            </nav>
+
+            <div class="user-profile">
+                <button type="button" id="btn-user-menu-toggle" class="btn-menu-toggle" aria-label="Menú de usuario" title="Opciones de usuario">
+                    <div id="header-business-avatar" class="avatar">
+                        <span>DL</span>
+                    </div>
+                    <i class="fa-solid fa-bars menu-hamburger-icon"></i>
+                </button>
+
+                <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">
+                    <div class="dropdown-header">
+                        <span id="header-business-name" class="company-name">Acceso Libre</span>
+                        <span id="header-business-role" class="account-type"><i class="fa-solid fa-store"></i> Cliente</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-actions">
+                        <button type="button" id="btn-switch-business" class="dropdown-item">
+                            <i class="fa-solid fa-right-to-bracket"></i> Ingreso Negocio
+                        </button>
+                        <button type="button" id="btn-open-admin" class="dropdown-item" style="display: none;">
+                            <i class="fa-solid fa-key text-blue"></i> Modo Administración
+                        </button>
+                        <button type="button" id="btn-logout" class="dropdown-item danger" style="display: none;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Salir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Visitor Landing Page (Acceso Libre) -->
+        <div id="visitor-landing" style="display: none;">
+            <div class="visitor-hero">
+                <div class="visitor-hero-bg"></div>
+                <div class="visitor-hero-content">
+                    <div class="visitor-logo-badge">
+                        <div class="visitor-logo-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                        <span class="visitor-logo-label">RAPIDIN</span>
+                    </div>
+                    <h1 class="visitor-title">DOMICILIOS RAPIDIN</h1>
+                    <p class="visitor-subtitle">La plataforma de domicilios más confiable de
+                        Villavicencio.<br>Conectamos tu negocio con cada rincón de la ciudad.</p>
+                    <button id="btn-visitor-login" class="btn-visitor-cta">
+                        <i class="fa-solid fa-right-to-bracket"></i> ¿Eres un negocio? Ingresa aquí
+                    </button>
+                </div>
+            </div>
+            <div class="visitor-businesses-section">
+                <div class="visitor-businesses-header">
+                    <h2 class="visitor-section-title"><i class="fa-solid fa-store"></i> Negocios en la Plataforma</h2>
+                    <p class="visitor-section-desc">Encuentra lo que quieras, fácil, Rapidin!
+                    </p>
+                </div>
+                <div id="visitor-cards-grid" class="visitor-cards-grid">
+                    <!-- Generated dynamically by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Body (only visible when logged in) -->
+        <main id="app-main-content" class="content-area" style="display: none;">
+            <!-- TAB 1: COTIZADOR & MAPA -->
+            <section id="tab-cotizador" class="tab-content active">
+                <div class="cotizador-layout">
+                    <!-- Left Panel: Search & Price Breakdown -->
+                    <div class="search-panel card">
+                        <div class="panel-header">
+                            <span class="badge-blue"><i class="fa-solid fa-location-dot"></i> Villavicencio, Meta</span>
+                            <h2 id="title-cotizador">Plataforma de Tarifas de Domicilio</h2>
+                            <p class="panel-desc">Selecciona o escribe el barrio de destino. Si es la primera consulta,
+                                el sistema te pedirá el nombre de usuario de tu negocio y la contraseña asignada.</p>
+                        </div>
+
+                        <!-- Origin Static Info -->
+                        <div class="origin-box">
+                            <div class="origin-icon">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+                            <div class="origin-details" style="width: 100%;">
+                                <span class="label">Sede de Origen</span>
+                                <span id="origin-business-name" class="origin-name"></span>
+                                <select id="origin-admin-select-client" class="form-control"
+                                    style="display: none; font-weight: 700; width: 100%; margin-top: 2px; padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 0.9rem; color: #1e293b; background-color: #f8fafc; cursor: pointer;"></select>
+                                <span class="origin-addr-wrapper"
+                                    style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                    <span id="origin-business-address" class="origin-addr"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Barrio Autocomplete Input -->
+                        <div class="search-box-wrapper">
+                            <label for="barrio-input" class="input-label">Escribe el Barrio o Localidad de
+                                Destino</label>
+                            <div class="search-input-container">
+                                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                <input type="text" id="barrio-input"
+                                    placeholder="Ej. Barzal, Amarilo, El Buque, Catama, Porfía..." autocomplete="off">
+                                <button id="clear-search-btn" class="clear-btn" style="display: none;">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <!-- Autocomplete Dropdown list -->
+                            <div id="autocomplete-list" class="autocomplete-dropdown"></div>
+                        </div>
+
+                        <!-- Popular Barrio Chips -->
+                        <div class="quick-chips">
+                            <span class="chips-title">Barrios frecuentes:</span>
+                            <div class="chips-container" id="quick-chips-container">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Quotation Result Card -->
+                        <div id="result-card" class="result-card" style="display: none;">
+                            <div class="result-header">
+                                <div>
+                                    <h3 id="res-barrio-name">Barrio Destino</h3>
+                                    <span id="res-barrio-zona" class="zona-badge">Zona Centro</span>
+                                </div>
+                                <div class="price-display">
+                                    <span class="price-currency">$</span>
+                                    <span id="res-price-amount" class="price-val">0</span>
+                                    <span class="price-unit">COP</span>
+                                </div>
+                            </div>
+
+                            <div class="metrics-grid">
+                                <div class="metric-item">
+                                    <div class="metric-icon blue"><i class="fa-solid fa-route"></i></div>
+                                    <div class="metric-data">
+                                        <span class="metric-label">Distancia Estimada</span>
+                                        <span id="res-distancia" class="metric-value">0.0 km</span>
+                                    </div>
+                                </div>
+
+                                <div class="metric-item">
+                                    <div class="metric-icon clock"><i class="fa-solid fa-clock"></i></div>
+                                    <div class="metric-data">
+                                        <span class="metric-label">Tiempo de Entrega</span>
+                                        <span id="res-tiempo" class="metric-value">0 min</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="price-breakdown">
+                                <span class="breakdown-title">Desglose de la tarifa:</span>
+                                <div class="breakdown-row">
+                                    <span>Tarifa Base Ciudad</span>
+                                    <span id="res-tarifa-base">$6.000 COP</span>
+                                </div>
+                                <div class="breakdown-row">
+                                    <span>Recargo por Zonas / Distancia</span>
+                                    <span id="res-recargo">$0 COP</span>
+                                </div>
+                                <div class="breakdown-row total">
+                                    <span>Total Domicilio Negocio</span>
+                                    <span id="res-total-breakdown">$6.000 COP</span>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button id="btn-crear-orden" class="btn btn-primary btn-block">
+                                    <i class="fa-solid fa-paper-plane"></i> Solicitar Domicilio Ahora
+                                </button>
+                                <a id="btn-google-maps" href="#" target="_blank" rel="noopener noreferrer"
+                                    class="btn btn-outline btn-block">
+                                    <i class="fa-brands fa-google"></i> Ver Ruta en Google Maps
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Empty State message -->
+                        <div id="empty-result-state" class="empty-state">
+                            <i class="fa-solid fa-map-location-dot empty-icon"></i>
+                            <p>Escribe el nombre del barrio de Villavicencio para consultar su tarifa y visualizar la
+                                ruta en el mapa.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Interactive Google-style Map -->
+                    <div class="map-panel card">
+                        <div class="map-header">
+                            <div class="map-title-wrapper">
+                                <h3><i class="fa-solid fa-map-marked-alt text-blue"></i> Mapa de Ruta en Villavicencio
+                                </h3>
+                                <span class="map-subtitle">Origen Sede → Destino Domicilio</span>
+                            </div>
+                            <div class="map-actions">
+                                <button id="btn-recenter-map" class="btn-icon" title="Centrar Mapa">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="map-wrapper">
+                            <div id="map" class="map-container"></div>
+                            <!-- Map Overlay Badge -->
+                            <div id="map-overlay-info" class="map-overlay-badge" style="display: none;">
+                                <i class="fa-solid fa-location-arrow"></i>
+                                <span id="map-overlay-text">Calculando ruta...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: MI NEGOCIO / PERFIL -->
+            <section id="tab-profile" class="tab-content">
+                <div class="section-container card">
+                    <div class="section-header align-start">
+                        <div>
+                            <div class="badge-blue"><i class="fa-solid fa-store"></i> Personalización de Perfil</div>
+                            <h2>Mi Negocio</h2>
+                            <p class="section-desc">Personaliza tu presencia pública en la plataforma Rapidin.</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-editor-layout">
+                        <!-- Left: Preview Card -->
+                        <div class="profile-preview-col">
+                            <h3 class="profile-section-label"><i class="fa-solid fa-eye"></i> Vista previa de tu tarjeta
+                            </h3>
+                            <div class="profile-preview-card" id="profile-preview-card">
+                                <div class="preview-photo-wrap">
+                                    <div class="preview-photo" id="preview-photo-img">
+                                        <i class="fa-solid fa-store preview-default-icon"></i>
+                                    </div>
+                                    <div class="preview-category-badge" id="preview-category-badge">Categoría</div>
+                                </div>
+                                <div class="preview-card-body">
+                                    <h4 class="preview-business-name" id="preview-business-name">Nombre del Negocio</h4>
+                                    <p class="preview-description" id="preview-description">Descripción corta de tu
+                                        negocio...</p>
+                                    <span class="preview-location"><i class="fa-solid fa-location-dot"></i> <span
+                                            id="preview-address">Dirección</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Edit Form -->
+                        <div class="profile-form-col">
+                            <h3 class="profile-section-label"><i class="fa-solid fa-pen-to-square"></i> Editar
+                                información</h3>
+
+                            <div class="profile-photo-upload">
+                                <label class="profile-photo-label">Foto de Perfil</label>
+                                <div class="photo-upload-area" id="photo-upload-area">
+                                    <img id="photo-preview-large" src="" alt=""
+                                        style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                    <div id="photo-upload-placeholder" class="photo-placeholder">
+                                        <i class="fa-solid fa-camera"></i>
+                                        <span>Haz clic para subir una foto</span>
+                                        <small>PNG, JPG o WEBP (máx. 2MB)</small>
+                                    </div>
+                                    <input type="file" id="input-profile-photo" accept="image/*" style="display:none;">
+                                </div>
+                                <button type="button" id="btn-clear-photo" class="btn btn-outline btn-sm"
+                                    style="margin-top:8px; display:none;">
+                                    <i class="fa-solid fa-trash"></i> Quitar foto
+                                </button>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Nombre del Negocio</label>
+                                <input type="text" id="profile-nombre" class="readonly-input" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-categoria">Categoría de Negocio</label>
+                                <select id="profile-categoria" class="form-control" style="width:100%;">
+                                    <option value="Restaurante">Restaurante</option>
+                                    <option value="Pizzería">Pizzería</option>
+                                    <option value="Repostería">Repostería</option>
+                                    <option value="Cafetería">Cafetería</option>
+                                    <option value="Droguería">Droguería</option>
+                                    <option value="Minimarket">Minimarket</option>
+                                    <option value="Panadería">Panadería</option>
+                                    <option value="Heladería">Heladería</option>
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-descripcion">Descripción corta <span
+                                        style="color:#94a3b8;font-size:0.8rem;">(máx. 140 caracteres)</span></label>
+                                <textarea id="profile-descripcion" rows="3" maxlength="140"
+                                    placeholder="Ej. Las mejores hamburguesas artesanales de la ciudad..."></textarea>
+                                <small id="profile-desc-chars" style="color:#94a3b8;">0 / 140</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-direccion">Dirección de Origen</label>
+                                <input type="text" id="profile-direccion"
+                                    placeholder="Ej. Calle 15 # 30-40, Villavicencio">
+                            </div>
+
+                            <button id="btn-save-profile" class="btn btn-primary btn-block" style="margin-top:1.25rem;">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios de Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: MIS DOMICILIOS / SOLICITUDES -->
+            <section id="tab-pedidos" class="tab-content">
+                <div class="section-container card">
+                    <div class="section-header">
+                        <div>
+                            <h2>Historial de Domicilios del Negocio</h2>
+                            <p>Listado de solicitudes realizadas por tu empresa.</p>
+                        </div>
+                        <button id="btn-nueva-solicitud-tab" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> Nueva Solicitud
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Pedido</th>
+                                    <th>Fecha / Hora</th>
+                                    <th>Empresa</th>
+                                    <th>Barrio Destino</th>
+                                    <th>Dirección</th>
+                                    <th>Distancia</th>
+                                    <th>Valor Total</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidos-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PANEL ADMINISTRATIVO (NEGOCIOS & HOJA DE CÁLCULO) -->
+            <section id="tab-backend" class="tab-content">
+                <div class="section-container card">
+                    <div class="section-header align-start">
+                        <div>
+                            <div class="badge-blue"><i class="fa-solid fa-user-gear"></i> Módulo Administrativo General
+                            </div>
+                            <h2>Panel de Administración de Negocios y Tarifas</h2>
+                            <p class="section-desc">
+                                Administra todos los negocios clientes, asigna códigos/contraseñas de acceso y modifica
+                                la base de datos de precios por barrio.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Admin Sub-Navigation Tabs -->
+                    <div class="admin-subtabs-nav">
+                        <button class="admin-subtab active" data-subtab="admin-clientes">
+                            <i class="fa-solid fa-store"></i> Base de Datos de Negocios y Códigos
+                        </button>
+                        <button class="admin-subtab" data-subtab="admin-barrios">
+                            <i class="fa-solid fa-table-cells"></i> Base de Datos de Barrios y Precios (CSV)
+                        </button>
+                    </div>
+
+                    <!-- ADMIN SUBTAB 1: GESTIÓN DE NEGOCIOS -->
+                    <div id="subtab-admin-clientes" class="admin-subtab-content active">
+                        <div class="admin-toolbar">
+                            <button id="btn-add-client-row" class="btn btn-primary">
+                                <i class="fa-solid fa-plus"></i> Registrar Nuevo Negocio
+                            </button>
+                            <button id="btn-save-clients" class="btn btn-success">
+                                <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                            </button>
+                        </div>
+
+                        <div class="table-responsive margin-top-1">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID Cliente</th>
+                                        <th>Nombre del Negocio (Usuario)</th>
+                                        <th>Código / Contraseña Asignada</th>
+                                        <th>Dirección</th>
+                                        <th>Latitud</th>
+                                        <th>Longitud</th>
+                                        <th>Categoría</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN SUBTAB 2: HOJA DE CÁLCULO DE BARRIOS Y PRECIOS -->
+                    <div id="subtab-admin-barrios" class="admin-subtab-content">
+                        <div class="admin-toolbar"
+                            style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div class="client-select-wrapper"
+                                style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 280px; max-width: 480px;">
+                                <label for="admin-select-client-db"
+                                    style="font-weight: 700; font-size: 0.88rem; color: var(--slate-700); white-space: nowrap;">
+                                    <i class="fa-solid fa-store text-blue"></i> Seleccionar Negocio / Cliente:
+                                </label>
+                                <select id="admin-select-client-db" class="form-control"
+                                    style="padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--slate-300); font-weight: 700; background-color: white; color: var(--slate-800); width: 100%;">
+                                    <option value="">-- Selecciona un Negocio --</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div id="spreadsheet-toolbar-buttons" class="admin-toolbar-actions"
+                                style="display: none; gap: 0.5rem; flex-wrap: wrap;">
+                                <button id="btn-add-row" class="btn btn-primary">
+                                    <i class="fa-solid fa-plus"></i> Añadir Nuevo Barrio
+                                </button>
+                                <button id="btn-save-spreadsheet" class="btn btn-success">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                                </button>
+                                <button id="btn-export-csv" class="btn btn-secondary">
+                                    <i class="fa-solid fa-file-csv"></i> Descargar CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Estado Inicial / Placeholder cuando no hay negocio seleccionado -->
+                        <div id="spreadsheet-placeholder" class="empty-state margin-top-1"
+                            style="text-align: center; padding: 3.5rem 1.5rem; background: var(--slate-50); border: 2px dashed var(--slate-200); border-radius: var(--radius-md);">
+                            <i class="fa-solid fa-table-cells text-blue"
+                                style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-500);"></i>
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--slate-800); margin-bottom: 0.4rem;">
+                                Selecciona un Negocio para Gestionar sus Tarifas</h3>
+                            <p style="font-size: 0.88rem; color: var(--slate-500); max-width: 500px; margin: 0 auto;">
+                                Por favor elige la empresa o negocio en el menú desplegable superior para cargar y modificar su base de datos de precios de domicilios por barrio.
+                            </p>
+                        </div>
+
+                        <!-- Contenido Editor de Hoja de Cálculo (Oculto por defecto hasta seleccionar un negocio) -->
+                        <div id="spreadsheet-editor-content" style="display: none;">
+                            <!-- Spreadsheet Stats Header -->
+                            <div class="spreadsheet-stats margin-top-1">
+                                <div class="stat-pill">
+                                    <span class="label">Archivo Base:</span>
+                                    <span class="val">tarifario_villavicencio.csv</span>
+                                </div>
+                                <div class="stat-pill">
+                                    <span class="label">Total Barrios Registrados:</span>
+                                    <span id="stat-total-barrios" class="val">0</span>
+                                </div>
+                                <div class="stat-pill">
+                                    <span class="label">Estado Servidor:</span>
+                                    <span class="val text-success"><i class="fa-solid fa-circle-check"></i>
+                                        Sincronizado</span>
+                                </div>
+                            </div>
+
+                            <!-- Excel/Spreadsheet Grid -->
+                            <div class="spreadsheet-table-container">
+                                <table id="spreadsheet-grid" class="spreadsheet-grid">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Barrio / Conjunto Destino</th>
+                                            <th>Zona / Sector</th>
+                                            <th>Latitud</th>
+                                            <th>Longitud</th>
+                                            <th>Dist. (km)</th>
+                                            <th>Tarifa Base ($)</th>
+                                            <th>Recargo ($)</th>
+                                            <th>Tarifa Total ($)</th>
+                                            <th>Tiempo (min)</th>
+                                            <th>Eliminar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="spreadsheet-tbody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- MODAL: AUTENTICACIÓN ADMINISTRATIVA -->
+        <div id="modal-admin-login" class="modal-overlay" style="display: none;">
+            <div class="modal-card login-card" style="position: relative;">
+                <button type="button" id="close-admin-modal-btn" class="close-modal"
+                    style="position: absolute; top: 12px; right: 16px; font-size: 1.3rem;"><i
+                        class="fa-solid fa-xmark"></i></button>
+                <div class="modal-header center-title">
+                    <div class="logo-icon margin-auto" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h2>Acceso Administrador Master</h2>
+                    <p class="login-sub">Ingresa la contraseña de administración.</p>
+                </div>
+                <form id="admin-login-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="admin-pin-input">Contraseña de Administrador</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-key"></i>
+                            <input type="password" id="admin-pin-input" placeholder="Ingresa la contraseña" required
+                                style="padding-right: 2.5rem;">
+                            <button type="button" id="btn-toggle-admin-pin" class="pwd-toggle-btn"
+                                style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #64748b;"
+                                title="Mostrar Contraseña">
+                                <i class="fa-solid fa-eye"
+                                    style="position: static; color: inherit; font-size: inherit;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-cancel-admin-modal" class="btn btn-outline">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock-open"></i> Acceder a
+                            Panel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: INICIO DE SESIÓN POR NEGOCIO / EMPRESA-->
+        <div id="modal-login" class="modal-overlay" style="display: none;">
+            <div class="modal-card login-card" style="position: relative;">
+                <button type="button" id="close-login-modal-btn" class="close-modal"
+                    style="position: absolute; top: 12px; right: 16px; font-size: 1.3rem;"><i
+                        class="fa-solid fa-xmark"></i></button>
+                <div class="modal-header center-title">
+                    <div class="logo-icon margin-auto">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <h2>Autenticación de Cliente</h2>
+                    <p class="login-sub">Para consultar la tarifa oficial, ingresa el nombre de usuario de tu negocio y
+                        tu código de acceso.</p>
+                </div>
+                <form id="login-form" class="modal-body">
+                    <div class="form-group">
+                        <label for="login-business-name">Nombre del Negocio (Nombre de Usuario) *</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-building"></i>
+                            <input type="text" id="login-business-name" placeholder="" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-business-code">Contraseña / Código de Negocio *</label>
+                        <div class="input-with-icon">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="login-business-code" placeholder="Código de acceso" required
+                                autocomplete="off" style="padding-right: 2.5rem;">
+                            <button type="button" id="btn-toggle-login-code" class="pwd-toggle-btn"
+                                style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #64748b;"
+                                title="Mostrar Contraseña">
+                                <i class="fa-solid fa-eye"
+                                    style="position: static; color: inherit; font-size: inherit;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <i class="fa-solid fa-right-to-bracket"></i> Acceder
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MODAL: CREAR PEDIDO CORPORATIVO -->
+        <div id="modal-pedido" class="modal-overlay" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-paper-plane text-blue"></i> Solicitud de Domicilio</h3>
+                    <button id="close-modal-btn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="order-form" class="modal-body">
+                    <div class="form-group">
+                        <label>Empresa Solicitante</label>
+                        <input type="text" id="order-empresa" value="Mailys" readonly class="readonly-input">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Barrio Destino</label>
+                            <input type="text" id="order-barrio" readonly class="readonly-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor Calculado</label>
+                            <input type="text" id="order-precio" readonly class="readonly-input highlight-price">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="order-direccion">Dirección Exacta de Entrega *</label>
+                        <input type="text" id="order-direccion" placeholder="Ej. Calle 15 #38-20, Apto 302" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="order-notas">Instrucciones o Descripción del Pedido</label>
+                        <textarea id="order-notas" rows="2"
+                            placeholder="Ej. Entregar en recepción a nombre de Juan Pérez..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="btn-cancel-modal" class="btn btn-outline">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Confirmar
+                            Domicilio</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="toast-notification"></div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 <strong>DomiciliosRapidin</strong> - Servicio de domicilios en Villavicencio.</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS for Maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Application JS Modules -->
+    <script src="js/map.js"></script>
+    <script src="js/spreadsheet.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,335 @@
+id,barrio,zona,latitud,longitud,distancia_km,tarifa_base,recargo_distancia,tarifa_total,tiempo_entrega_min
+1,Ceiba,Sector Mínima,4.149,-73.634,1.0,6000,0,6000,12
+2,Cedritos,Sector Mínima,4.148,-73.633,1.1,6000,0,6000,12
+3,Bosques,Sector Mínima,4.147,-73.632,1.2,6000,0,6000,12
+4,Sauces,Sector Mínima,4.146,-73.635,1.1,6000,0,6000,12
+5,Rosales,Sector Mínima,4.145,-73.636,1.3,6000,0,6000,14
+6,Conjunto Barcelona,Sector Mínima,4.144,-73.637,1.4,6000,1000,7000,15
+7,Condominio Rosales,Sector Mínima,4.1455,-73.6365,1.3,6000,1000,7000,15
+8,Conjunto Llano Grande,Sector Mínima,4.1465,-73.631,1.2,6000,0,6000,13
+9,Conjunto Santa Lucía,Sector Mínima,4.1475,-73.63,1.1,6000,0,6000,13
+10,Popular,Sector Mínima,4.143,-73.632,1.5,6000,1000,7000,15
+11,Dosmil Bajo,Sector Mínima,4.142,-73.631,1.6,6000,1000,7000,16
+12,Dosmil Alto,Sector Mínima,4.141,-73.63,1.7,6000,1000,7000,16
+13,Jordán,Sector Mínima,4.14,-73.629,1.8,6000,1000,7000,16
+14,Jordán Paraíso,Sector Mínima,4.139,-73.628,1.9,6000,1000,7000,17
+15,Jordán Alto,Sector Mínima,4.138,-73.627,2.0,6000,1000,7000,17
+16,Tránsito y Acueducto,Sector Mínima,4.151,-73.635,1.3,6000,1000,7000,14
+17,Madrigal,Sector Mínima,4.137,-73.626,2.1,6000,1000,7000,18
+18,Castilla,Sector Mínima,4.136,-73.625,2.2,6000,1000,7000,18
+19,Vainilla,Sector Mínima,4.135,-73.624,2.3,6000,1000,7000,18
+20,Cárcel,Sector Mínima,4.134,-73.623,2.4,6000,1000,7000,19
+21,Recreo,Sector Mínima,4.133,-73.622,2.5,6000,1000,7000,20
+22,6 de Abril,Sector Mínima,4.132,-73.621,2.6,6000,1000,7000,20
+23,Olímpica,Sector Mínima,4.131,-73.62,2.7,6000,1000,7000,20
+24,Manantial,Sector Mínima,4.13,-73.619,2.8,6000,1000,7000,20
+25,Hierbabuena,Sector Mínima,4.129,-73.618,2.9,6000,1000,7000,20
+26,Cofren Catama,Sector Mínima,4.14,-73.605,3.2,6000,1000,7000,20
+27,Puesto de Salud Recreo,Sector Mínima,4.1335,-73.6215,2.5,6000,1000,7000,20
+28,Barrio Alcalá,Sector Mínima,4.1355,-73.6225,2.3,6000,1000,7000,18
+29,La Florencia,Sector Mínima,4.1365,-73.6235,2.2,6000,1000,7000,18
+30,La Desmontadora,Sector Mínima,4.1375,-73.6245,2.1,6000,1000,7000,18
+31,"Conjuntos Camino Real (1,2,3,4)",Sector Cerca,4.143,-73.621,2.0,6000,1000,7000,18
+32,"Parques de Sevilla (1,2,3,4)",Sector Cerca,4.144,-73.62,2.1,6000,1000,7000,18
+33,Conjunto Tulipanes,Sector Cerca,4.145,-73.619,2.2,6000,1000,7000,18
+34,Conjunto Girasoles,Sector Cerca,4.146,-73.618,2.3,6000,1000,7000,18
+35,Conjunto Almería,Sector Cerca,4.147,-73.617,2.4,6000,1000,7000,18
+36,Condominio Cristales,Sector Cerca,4.148,-73.616,2.5,6000,1000,7000,18
+37,Conjunto Palma Real,Sector Cerca,4.149,-73.615,2.6,6000,1000,7000,18
+38,Altos de Lomalinda,Sector Cerca,4.15,-73.614,2.7,6000,1000,7000,19
+39,Conjunto Villa Carina,Sector Cerca,4.151,-73.613,2.8,6000,1000,7000,19
+40,Conjunto Prados de Castilla,Sector Cerca,4.152,-73.612,2.9,6000,1000,7000,19
+41,Edificio San Fernando Plaza,Sector Cerca,4.153,-73.611,3.0,6000,1000,7000,20
+42,Prados de Hierbabuena,Sector Cerca,4.154,-73.61,3.1,6000,1000,7000,20
+43,Balcones de Pontevedra,Sector Cerca,4.155,-73.609,3.2,6000,1000,7000,20
+44,Estero,Sector Cerca Medio,4.14,-73.615,3.0,6000,2000,8000,20
+45,Macunaima,Sector Cerca Medio,4.141,-73.614,3.5,6000,3000,9000,22
+46,Macarena,Sector Cerca Medio,4.142,-73.613,3.1,6000,2000,8000,20
+47,Camelias,Sector Cerca Medio,4.143,-73.612,3.6,6000,3000,9000,22
+48,Villa Ortiz,Sector Cerca Medio,4.144,-73.611,3.7,6000,3000,9000,22
+49,Villa Jhoana,Sector Cerca Medio,4.145,-73.61,3.8,6000,3000,9000,23
+50,Danubio,Sector Cerca Medio,4.146,-73.609,3.9,6000,3000,9000,23
+51,Guadalajara,Sector Cerca Medio,4.147,-73.608,4.0,6000,3000,9000,24
+52,Maracos Cerca,Sector Cerca Medio,4.138,-73.614,3.2,6000,2000,8000,20
+53,San Ignacio,Sector Cerca Medio,4.137,-73.613,3.3,6000,2000,8000,20
+54,"Cantarrana 1,2,3,4",Sector Cerca Medio,4.136,-73.612,3.4,6000,2000,8000,21
+55,Vochica,Sector Cerca Medio,4.135,-73.611,3.3,6000,2000,8000,20
+56,Canaima,Sector Cerca Medio,4.134,-73.61,3.2,6000,2000,8000,20
+57,San Isidro,Sector Cerca Medio,4.133,-73.609,3.9,6000,3000,9000,23
+58,Santa Inés,Sector Cerca Medio,4.132,-73.608,4.0,6000,3000,9000,24
+59,Villa del Sol,Sector Cerca Medio,4.131,-73.607,4.1,6000,3000,9000,24
+60,La Morgue,Sector Cerca Medio,4.13,-73.606,4.2,6000,3000,9000,24
+61,San Marcos,Sector Cerca Medio,4.129,-73.605,3.3,6000,2000,8000,20
+62,Conjunto Toscana,Sector Cerca Medio,4.128,-73.604,4.0,6000,3000,9000,23
+63,Quintas de Toscana,Sector Cerca Medio,4.127,-73.603,4.1,6000,3000,9000,24
+64,La Florida,Sector Cerca Medio,4.126,-73.602,4.2,6000,3000,9000,24
+65,San Benito,Sector Cerca Medio,4.125,-73.601,4.0,6000,3000,9000,23
+66,Nuevo Ricaurte,Sector Cerca Medio,4.124,-73.6,4.1,6000,3000,9000,24
+67,Porvenir,Sector Cerca Medio,4.139,-73.611,3.8,6000,3000,9000,22
+68,Antonio Ricaurte,Sector Cerca Medio,4.123,-73.599,4.2,6000,3000,9000,24
+69,Barrio Nogales,Sector Cerca Medio,4.122,-73.598,3.4,6000,2000,8000,20
+70,El Retiro,Sector Cerca Medio,4.121,-73.597,3.3,6000,2000,8000,20
+71,Remanso,Sector Cerca Medio,4.12,-73.596,3.4,6000,2000,8000,20
+72,Vizcaya,Sector Cerca Medio,4.15,-73.62,3.8,6000,3000,9000,22
+73,Hacaritama,Sector Cerca Medio,4.151,-73.619,3.9,6000,3000,9000,23
+74,Barrio Primavera,Sector Cerca Medio,4.152,-73.618,3.7,6000,3000,9000,22
+75,Ciudad Divino Niño,Sector Cerca Medio,4.153,-73.617,4.0,6000,3000,9000,24
+76,Las Ferias,Sector Cerca Medio,4.154,-73.616,3.8,6000,3000,9000,22
+77,Sector Cereo 01,Sector Cerca Medio,4.155,-73.615,4.1,6000,3000,9000,24
+78,"Condominio Duary 1,2",Sector Medio,4.156,-73.62,4.0,6000,3000,9000,24
+79,Cerro Campestre Alto,Sector Medio,4.157,-73.621,4.2,6000,3000,9000,25
+80,Cond. Bosques de Vizcaya,Sector Medio,4.158,-73.622,4.1,6000,3000,9000,24
+81,Cond. Portales del Molino,Sector Medio,4.159,-73.623,4.0,6000,3000,9000,24
+82,Reservas del Vizcaya,Sector Medio,4.16,-73.624,4.3,6000,3000,9000,25
+83,"Conj. Los Almendros 1,2",Sector Medio,4.161,-73.625,4.1,6000,3000,9000,24
+84,Caminos de Sevilla,Sector Medio,4.162,-73.626,4.2,6000,3000,9000,25
+85,Torres del Mediterráneo,Sector Medio,4.163,-73.627,4.4,6000,3000,9000,25
+86,Conjunto La Cabaña,Sector Medio,4.164,-73.628,4.8,6000,4000,10000,28
+87,"Quinta de Morelia 1,2,3",Sector Terminal,4.12,-73.635,4.5,6000,4000,10000,25
+88,Cond. Villavento,Sector Terminal,4.121,-73.636,4.6,6000,4000,10000,26
+89,Cond. Ciudad Real,Sector Terminal,4.122,-73.637,4.7,6000,4000,10000,26
+90,Torres de Pradera,Sector Terminal,4.123,-73.638,4.8,6000,4000,10000,26
+91,Condominio Villa Valeria,Sector Terminal,4.124,-73.639,4.9,6000,4000,10000,27
+92,Condominio Canaguay,Sector Terminal,4.125,-73.64,5.0,6000,4000,10000,28
+93,Jardines de Santorine,Sector Terminal,4.126,-73.641,5.1,6000,4000,10000,28
+94,Llano Real Club House,Sector Terminal,4.127,-73.642,5.2,6000,4000,10000,28
+95,Palmas de Vallarta,Sector Terminal,4.128,-73.643,5.3,6000,4000,10000,29
+96,Conjunto Terrabela,Sector Terminal,4.129,-73.644,5.4,6000,4000,10000,29
+97,Bosques de Morelia,Sector Terminal,4.13,-73.645,4.7,6000,4000,10000,26
+98,"Nueva Esperanza 1,2",Sector Terminal,4.131,-73.646,4.8,6000,4000,10000,26
+99,Condominio Hacienda Manoy,Sector Terminal,4.132,-73.647,4.9,6000,4000,10000,27
+100,Quintas de Santa Clara,Sector Terminal,4.133,-73.648,5.0,6000,4000,10000,27
+101,Barrio Villa del Alcarabán,Sector Terminal,4.134,-73.649,5.1,6000,4000,10000,28
+102,Urbanización Calatraba,Sector Terminal,4.135,-73.65,5.2,6000,4000,10000,28
+103,Terra Verde,Sector Terminal,4.136,-73.651,5.3,6000,4000,10000,28
+104,Alameda del Bosque,Sector Terminal,4.137,-73.652,5.4,6000,4000,10000,29
+105,Terra Vela,Sector Terminal,4.138,-73.653,5.5,6000,4000,10000,30
+106,Conjunto Morichal,Sector Amarilo,4.108,-73.639,6.1,6000,8000,14000,32
+107,Conjunto Cimarron,Sector Amarilo,4.107,-73.638,6.2,6000,8000,14000,32
+108,Conjunto Alborada,Sector Amarilo,4.106,-73.637,6.3,6000,8000,14000,33
+109,Conjunto Piedemonte,Sector Amarilo,4.105,-73.636,6.4,6000,8000,14000,33
+110,Conjunto Arauco,Sector Amarilo,4.104,-73.635,6.5,6000,8000,14000,34
+111,Conjunto Zainos,Sector Amarilo,4.103,-73.634,6.6,6000,8000,14000,34
+112,"Conjunto Pasollano 1,2,3,4",Sector Amarilo,4.102,-73.633,6.7,6000,8000,14000,35
+113,Conjunto Alcarabán,Sector Amarilo,4.101,-73.632,6.8,6000,8000,14000,35
+114,Conjunto Mapire,Sector Amarilo,4.1,-73.631,6.9,6000,8000,14000,36
+115,Conjunto Ocarros,Sector Amarilo,4.099,-73.63,7.0,6000,8000,14000,36
+116,Cond. Arboleda Campestre,Sector Amarilo,4.098,-73.629,7.1,6000,8000,14000,36
+117,Arboleda Campestre IV,Sector Amarilo,4.097,-73.628,7.2,6000,8000,14000,37
+118,Villa Hermosa,Sector Amarilo,4.096,-73.627,7.3,6000,8000,14000,37
+119,Cond. Campestre Caracolí,Sector Amarilo,4.094,-73.625,7.8,6000,10000,16000,40
+120,Gimnasio Los Alcázares,Sector Amarilo,4.093,-73.624,8.0,6000,10000,16000,40
+121,"Multi. Centauros Bloque A,B,C,D",Sector Los Centauros,4.135,-73.645,6.5,6000,8000,14000,32
+122,Portales de Gratamira,Sector Los Centauros,4.136,-73.646,6.6,6000,8000,14000,33
+123,Balcones de Gratamira,Sector Los Centauros,4.137,-73.647,6.7,6000,8000,14000,33
+124,"Torres de Salerno 1,2",Sector Los Centauros,4.138,-73.648,6.8,6000,8000,14000,34
+125,Cond. Santa Ana,Sector Los Centauros,4.139,-73.649,6.9,6000,8000,14000,34
+126,Cond. La Fontana,Sector Los Centauros,4.14,-73.65,7.0,6000,8000,14000,35
+127,Cond. Santa Paula,Sector Los Centauros,4.141,-73.651,7.1,6000,8000,14000,35
+128,Prados de Maricure,Sector Los Centauros,4.142,-73.652,7.2,6000,8000,14000,36
+129,Univer. Uniminuto,Sector Los Centauros,4.143,-73.653,7.3,6000,8000,14000,36
+130,7 de Agosto,Sector Barsal,4.144,-73.639,1.8,6000,3000,9000,16
+131,Barsal Bajo,Sector Barsal,4.145,-73.638,1.2,6000,3000,9000,15
+132,Barsal Alto,Sector Barsal,4.146,-73.639,1.5,6000,4000,10000,18
+133,Club Meta,Sector Barsal,4.147,-73.64,1.6,6000,4000,10000,18
+134,Mesetas,Sector Barsal,4.148,-73.641,2.5,6000,7000,13000,25
+135,Electrificadora EMSA,Sector Barsal,4.149,-73.642,2.0,6000,5000,11000,20
+136,Azotea,Sector Barsal,4.15,-73.643,2.2,6000,6000,12000,22
+137,Hospital Departamental,Sector Salud Barsal,4.1435,-73.6385,1.3,6000,4000,10000,15
+138,Clínica Primavera,Sector Salud Barsal,4.1445,-73.6375,1.4,6000,3000,9000,15
+139,Clínica Meta,Sector Salud Barsal,4.1455,-73.6365,1.3,6000,3000,9000,15
+140,Nueva Clínica Barsal,Sector Salud Barsal,4.1465,-73.6375,1.4,6000,3000,9000,15
+141,Servimédicos,Sector Salud Barsal,4.1475,-73.6385,1.5,6000,3000,9000,16
+142,Sanitas,Sector Salud Barsal,4.1485,-73.6395,1.6,6000,3000,9000,16
+143,Caja Copi Barsal,Sector Salud Barsal,4.1495,-73.6405,1.7,6000,3000,9000,16
+144,Clínica Cardiovascular,Sector Salud Barsal,4.1425,-73.6395,1.5,6000,3000,9000,16
+145,Salud Total,Sector Salud Barsal,4.1415,-73.6405,1.6,6000,3000,9000,16
+146,Capillas de la Fe,Sector Salud Barsal,4.1405,-73.6415,1.7,6000,3000,9000,16
+147,Virrey,Sector Grama,4.157,-73.643,2.5,6000,7000,13000,24
+148,Galán,Sector Grama,4.155,-73.651,2.9,6000,6000,12000,20
+149,Esmeralda,Sector Grama,4.142,-73.654,3.3,6000,6000,12000,22
+150,Triunfo,Sector Grama,4.158,-73.644,2.6,6000,5000,11000,20
+151,12 de Octubre,Sector Grama,4.159,-73.645,2.7,6000,6000,12000,22
+152,Santa Josefa Militar,Sector Grama,4.16,-73.646,2.8,6000,6000,12000,22
+153,Panorama,Sector Grama,4.161,-73.647,2.9,6000,6000,12000,22
+154,Emporio,Sector Grama,4.154,-73.641,2.2,6000,4000,10000,18
+155,La Campiña,Sector Grama,4.162,-73.648,3.1,6000,7000,13000,24
+156,Chapinero,Sector Grama,4.163,-73.649,3.2,6000,7000,13000,24
+157,Escuela de Carabineros,Sector Grama Conjuntos,4.164,-73.65,3.3,6000,6000,12000,23
+158,Cond. Puerta del Sol,Sector Grama Conjuntos,4.165,-73.651,3.4,6000,6000,12000,23
+159,"Conj. R. Cámbulos 1,2,3",Sector Grama Conjuntos,4.166,-73.652,3.5,6000,6000,12000,24
+160,"Cojn. R. San Ángel 1,2",Sector Grama Conjuntos,4.167,-73.653,3.6,6000,6000,12000,24
+161,Conj. Prados de San Francisco,Sector Grama Conjuntos,4.168,-73.654,3.7,6000,6000,12000,24
+162,La Arenera,Sector Grama Conjuntos,4.169,-73.655,3.9,6000,7000,13000,25
+163,"Los Cámbulos 1,2,3",Sector Grama Conjuntos,4.17,-73.656,3.6,6000,6000,12000,24
+164,Panorama del Campo,Sector Grama Conjuntos,4.171,-73.657,3.7,6000,6000,12000,24
+165,La Pradera,Sector Grama Conjuntos,4.172,-73.658,3.8,6000,6000,12000,25
+166,Conjunto Triángulo,Sector Caudal,4.16,-73.638,2.5,6000,5000,11000,20
+167,Edificio Montebello,Sector Caudal,4.161,-73.637,2.6,6000,5000,11000,20
+168,"Torres del Caudal 1,2",Sector Caudal,4.162,-73.636,2.7,6000,5000,11000,20
+169,Terrazas del Llano,Sector Caudal,4.163,-73.635,2.8,6000,5000,11000,21
+170,Torres Club,Sector Caudal,4.164,-73.634,2.9,6000,5000,11000,21
+171,Club Meta (Caudal),Sector Caudal,4.165,-73.633,3.0,6000,5000,11000,22
+172,Edificio Plaza,Sector Caudal,4.166,-73.632,3.1,6000,5000,11000,22
+173,Alameda Oriental Caudal,Sector Caudal,4.167,-73.631,3.2,6000,5000,11000,22
+174,Edificio Costa Bella Caudal Alto,Sector Caudal,4.168,-73.63,3.3,6000,5000,11000,23
+175,Edificio Ágora,Sector Caudal,4.169,-73.629,3.4,6000,5000,11000,23
+176,Conj. Araguaney,Sector Caudal,4.17,-73.628,3.5,6000,5000,11000,23
+177,Hotel del Llano,Sector Caudal,4.162,-73.636,2.7,6000,5000,11000,20
+178,Edificio Bello Horizonte,Sector Caudal,4.171,-73.627,3.6,6000,5000,11000,24
+179,Conjunto Sarare,Sector Caudal,4.172,-73.626,3.7,6000,5000,11000,24
+180,Valles de Aragón,Sector Kirpas,4.14,-73.595,5.5,6000,9000,15000,30
+181,Gaviotas,Sector Kirpas,4.141,-73.594,5.6,6000,9000,15000,30
+182,Villamelia,Sector Kirpas,4.142,-73.593,5.7,6000,9000,15000,30
+183,Acapulco,Sector Kirpas,4.143,-73.592,5.8,6000,9000,15000,31
+184,Kirpas,Sector Kirpas,4.148,-73.598,4.9,6000,9000,15000,28
+185,Sabana de Kirpas,Sector Kirpas,4.144,-73.591,5.9,6000,9000,15000,31
+186,Carolina Vía Kirpas,Sector Kirpas,4.145,-73.59,6.0,6000,9000,15000,32
+187,Mirador del Llano 2,Sector Kirpas,4.146,-73.589,6.1,6000,9000,15000,32
+188,Villa Samper,Sector Kirpas,4.147,-73.588,6.2,6000,9000,15000,32
+189,Cavivir,Sector Kirpas,4.148,-73.587,6.3,6000,9000,15000,33
+190,Sosiego Kirpas,Sector Kirpas,4.149,-73.586,6.4,6000,9000,15000,33
+191,Malocas,Sector Kirpas,4.15,-73.585,6.5,6000,9000,15000,34
+192,Metropolitana Kirpas o Malocas,Sector Kirpas,4.151,-73.584,6.6,6000,9000,15000,34
+193,San Antonio (Kirpas),Sector Kirpas,4.152,-73.583,6.7,6000,9000,15000,34
+194,Brillante,Sector Kirpas,4.153,-73.582,7.2,6000,11000,17000,36
+195,"La Rosita Etapa 1,2,3",Sector Séptima Brigada,4.135,-73.615,4.0,6000,6000,12000,24
+196,Doña Luz,Sector Séptima Brigada,4.136,-73.614,4.1,6000,6000,12000,24
+197,Chorillanos,Sector Séptima Brigada,4.137,-73.613,4.2,6000,6000,12000,25
+198,Remansos de Rosablanca,Sector Séptima Brigada,4.138,-73.612,4.3,6000,6000,12000,25
+199,Cond. San Sebastián,Sector Séptima Brigada,4.139,-73.611,4.4,6000,6000,12000,25
+200,"Cond. Santa María 1,2",Sector Séptima Brigada,4.14,-73.61,4.5,6000,6000,12000,26
+201,Séptima Brigada Distrito Militar,Sector Séptima Brigada,4.141,-73.609,4.6,6000,6000,12000,26
+202,Conj. Bulevar Codem,Sector Séptima Brigada,4.142,-73.608,4.7,6000,6000,12000,26
+203,Bosque de Rosablanca,Sector Séptima Brigada,4.143,-73.607,4.8,6000,6000,12000,27
+204,Cond. Bosques de Arruyanes,Sector Séptima Brigada,4.144,-73.606,4.9,6000,6000,12000,27
+205,Reservas del Bosque,Sector Séptima Brigada,4.145,-73.605,5.0,6000,6000,12000,27
+206,Conj. R. Villa Emaus,Sector Séptima Brigada,4.146,-73.604,5.1,6000,6000,12000,28
+207,"Casivare 1,2",Sector Séptima Brigada,4.147,-73.603,5.2,6000,6000,12000,28
+208,Conj. Remansos del Bosque,Sector Séptima Brigada,4.148,-73.602,5.3,6000,6000,12000,28
+209,"San Silvestre 1,2",Sector Séptima Brigada,4.149,-73.601,5.4,6000,6000,12000,29
+210,Villas del Mediterráneo,Sector Séptima Brigada,4.15,-73.6,5.5,6000,6000,12000,29
+211,Aguas Claras,Sector Séptima Brigada,4.151,-73.599,5.8,6000,7000,13000,30
+212,"Esperanza Etapa 7,8",Sector Esperanza Viva,4.141,-73.621,3.0,6000,4000,10000,20
+213,"Esperanza Etapa 1,2,3,4,5",Sector Esperanza Viva,4.142,-73.62,2.8,6000,4000,10000,20
+214,Rosablanca y Rosablanca Oriental,Sector Esperanza Viva,4.143,-73.619,3.2,6000,4000,10000,22
+215,La Vega,Sector Esperanza Viva,4.144,-73.618,3.3,6000,4000,10000,22
+216,Coralina,Sector Esperanza Viva,4.145,-73.617,3.4,6000,4000,10000,23
+217,San Benito (Esperanza),Sector Esperanza Viva,4.146,-73.616,2.7,6000,3000,9000,19
+218,Acacias o Quinta de las Acacias,Sector Esperanza Viva,4.147,-73.615,3.5,6000,4000,10000,23
+219,La Alborada,Sector Esperanza Viva,4.148,-73.614,3.6,6000,4000,10000,24
+220,Comuneros,Sector Esperanza Viva,4.149,-73.613,3.7,6000,4000,10000,24
+221,Villa Claudia,Sector Esperanza Viva,4.15,-73.612,3.8,6000,4000,10000,24
+222,Sesquicentenario,Sector Esperanza Viva,4.151,-73.611,3.9,6000,4000,10000,25
+223,Santa Marta,Sector Esperanza Viva,4.152,-73.61,4.0,6000,4000,10000,25
+224,La Serranía,Sector Esperanza Viva,4.153,-73.609,4.1,6000,4000,10000,25
+225,Maizaro,Sector Esperanza Viva,4.154,-73.608,2.8,6000,3000,9000,19
+226,Conj. Piamonte Bajando de Viva,Sector Esperanza Viva Conj,4.155,-73.607,3.5,6000,4000,10000,23
+227,Edificio Santa María Reservado,Sector Esperanza Viva Conj,4.156,-73.606,3.6,6000,4000,10000,23
+228,Conj. Los Ceresos,Sector Esperanza Viva Conj,4.157,-73.605,3.7,6000,4000,10000,24
+229,Cond. Los Nogales,Sector Esperanza Viva Conj,4.158,-73.604,3.8,6000,4000,10000,24
+230,Parques de Montebello,Sector Esperanza Viva Conj,4.159,-73.603,3.9,6000,4000,10000,25
+231,Cond. Galicia,Sector Esperanza Viva Conj,4.16,-73.602,4.0,6000,4000,10000,25
+232,Conj. Plenavida,Sector Esperanza Viva Conj,4.161,-73.601,4.1,6000,4000,10000,25
+233,CC Viva,Sector Esperanza Viva Conj,4.1535,-73.6195,3.6,6000,5000,11000,22
+234,Conjuntos Los Trapiches,Sector Buque,4.16,-73.615,3.8,6000,5000,11000,25
+235,Altos Villacodem,Sector Buque,4.159,-73.616,3.7,6000,5000,11000,24
+236,CC Primavera,Sector Buque,4.158,-73.617,3.9,6000,6000,12000,25
+237,Montearrollos,Sector Buque,4.157,-73.618,4.0,6000,6000,12000,25
+238,Buque,Sector Buque,4.153,-73.621,3.1,6000,5000,11000,22
+239,Conjunto Alta Gracia,Sector Buque,4.156,-73.619,4.2,6000,7000,13000,26
+240,Bungamiles,Sector Buque,4.155,-73.62,3.5,6000,5000,11000,23
+241,Condominio La Reserva,Sector Buque,4.154,-73.621,3.8,6000,6000,12000,25
+242,Conjunto Umabary,Sector Buque,4.153,-73.622,3.9,6000,6000,12000,25
+243,Conjunto La Serranía (Buque),Sector Buque,4.152,-73.623,4.0,6000,6000,12000,25
+244,Condominio Madeira,Sector Buque,4.151,-73.624,4.1,6000,6000,12000,26
+245,Torres de San Juan,Sector Buque,4.15,-73.625,3.6,6000,5000,11000,23
+246,Padamia 40,Sector Buque,4.149,-73.626,4.0,6000,6000,12000,25
+247,Conjunto Rincón del Buque,Sector Buque,4.148,-73.627,3.5,6000,5000,11000,23
+248,Quintas de Sans Souci,Sector Buque,4.147,-73.628,4.1,6000,6000,12000,26
+249,Portal de los Ocobos,Sector Buque,4.146,-73.629,4.2,6000,6000,12000,26
+250,Urbanización Santa Catalina,Sector Este Bajo,4.14,-73.603,4.2,6000,4000,10000,25
+251,Villas de Catama,Sector Este Bajo,4.141,-73.602,4.3,6000,4000,10000,25
+252,Prados de Siberia,Sector Este Bajo,4.142,-73.601,4.4,6000,4000,10000,25
+253,Pinilla,Sector Este Bajo,4.143,-73.6,4.5,6000,5000,11000,26
+254,Covisan,Sector Este Bajo,4.152,-73.592,5.3,6000,5000,11000,28
+255,Urbanización Covisan,Sector Este Bajo,4.153,-73.591,5.4,6000,5000,11000,28
+256,Los Gemelos,Sector Este Bajo,4.154,-73.59,6.2,6000,8000,14000,32
+257,Ciudad Salitre,Sector Este Bajo,4.155,-73.589,5.8,6000,6000,12000,30
+258,San Carlos Olla,Sector Este Bajo,4.156,-73.588,5.9,6000,6000,12000,30
+259,Marcos Bajo Pinilla,Sector Este Bajo,4.157,-73.587,5.7,6000,6000,12000,29
+260,Morichal (Bajo),Sector Este Bajo,4.158,-73.586,5.8,6000,6000,12000,30
+261,Delirio,Sector Este Bajo,4.159,-73.585,5.2,6000,5000,11000,27
+262,Cond. Barlovento,Sector Este Bajo,4.16,-73.584,4.8,6000,4000,10000,25
+263,"Cond. Bosques de Abajam 1,2,3",Sector Este Bajo,4.161,-73.583,4.9,6000,4000,10000,26
+264,"Okavangos 1,2",Sector Este Bajo,4.162,-73.582,6.5,6000,8000,14000,33
+265,Altos de Okavango,Sector Este Bajo,4.163,-73.581,6.6,6000,8000,14000,33
+266,"Llano Alto Amarilo 1,2,3,4 Vía Campanario",Sector Este Bajo,4.164,-73.58,5.8,6000,6000,12000,30
+267,Hotel El Campanario,Sector Este Bajo,4.165,-73.579,5.9,6000,6000,12000,30
+268,Sangorje,Sector Katumare,4.085,-73.65,8.5,6000,10000,16000,38
+269,El Rubí,Sector Katumare,4.084,-73.651,8.6,6000,10000,16000,38
+270,Guatapé,Sector Katumare,4.083,-73.652,8.7,6000,10000,16000,39
+271,Katumare,Sector Katumare,4.082,-73.653,8.8,6000,10000,16000,39
+272,Montecarlos Alto y Bajo,Sector Katumare,4.081,-73.654,8.9,6000,10000,16000,40
+273,Villa del Sol (Katumare),Sector Katumare,4.08,-73.655,8.7,6000,10000,16000,39
+274,Rochela,Sector Katumare,4.079,-73.656,8.6,6000,10000,16000,38
+275,Nuevo Horizonte,Sector Katumare,4.078,-73.657,8.8,6000,10000,16000,39
+276,Plata Rica,Sector Katumare,4.077,-73.658,8.9,6000,10000,16000,40
+277,Loma Linda,Sector Katumare,4.076,-73.659,9.0,6000,10000,16000,40
+278,Villa Lorena,Sector Katumare,4.075,-73.66,9.1,6000,10000,16000,40
+279,Capachos,Sector Katumare,4.074,-73.661,9.2,6000,10000,16000,41
+280,Cond. Quintas de Sangorje,Sector Katumare,4.073,-73.662,9.3,6000,10000,16000,41
+281,"Rincón de las Margaritas 1,2",Sector Katumare,4.072,-73.663,9.4,6000,10000,16000,42
+282,Cojn. Reservado Montecarlos,Sector Katumare,4.071,-73.664,9.5,6000,10000,16000,42
+283,"Ciudad del Campo 1,2,3",Sector Katumare,4.07,-73.665,9.6,6000,10000,16000,42
+284,Academia Militar José Antonio Páez,Sector Katumare,4.069,-73.666,9.7,6000,10000,16000,43
+285,Cond. Alama,Sector Katumare,4.068,-73.667,9.8,6000,10000,16000,43
+286,Conj. Santillanas del Llano,Sector Katumare,4.067,-73.668,9.9,6000,10000,16000,44
+287,"Serramonte 1,2,3,4,5,6,7",Sector Salida Bogotá,4.165,-73.66,6.0,6000,7000,13000,28
+288,Llano Lindo,Sectores Lejanos,4.088,-73.621,9.4,6000,6000,12000,35
+289,Los Héroes,Sectores Lejanos,4.087,-73.622,9.5,6000,7000,13000,36
+290,Las Américas,Sectores Lejanos,4.086,-73.623,9.6,6000,7000,13000,36
+291,LEN 13,Sectores Lejanos,4.085,-73.624,9.7,6000,7000,13000,37
+292,El Refugio,Sectores Lejanos,4.084,-73.625,9.2,6000,6000,12000,35
+293,Villa Zuares (Zona Restringida),Sector Riesgo / Cobertura Limitada,4.142,-73.633,2.0,0,0,0,0
+294,San José (Zona Restringida),Sector Riesgo / Cobertura Limitada,4.143,-73.634,2.1,0,0,0,0
+295,San Marcos (Riesgo),Sector Riesgo / Cobertura Limitada,4.144,-73.635,2.5,6000,2000,8000,20
+296,Industrial,Sector Riesgo / Cobertura Limitada,4.145,-73.636,2.6,6000,2000,8000,20
+297,Guatiquía (Zona Restringida),Sector Riesgo / Cobertura Limitada,4.146,-73.637,2.2,0,0,0,0
+298,Simón Bolívar,Sector Riesgo / Cobertura Limitada,4.147,-73.638,2.7,6000,2000,8000,20
+299,El Dike (Zona Restringida),Sector Riesgo / Cobertura Limitada,4.148,-73.639,2.3,0,0,0,0
+300,Villa Fabiola,Sector Riesgo / Cobertura Limitada,4.149,-73.64,2.8,6000,2000,8000,20
+301,Los Vencedores,Sector Riesgo / Cobertura Limitada,4.15,-73.641,3.2,6000,3000,9000,22
+302,"Nueva Colombia 1,2",Sector Riesgo / Cobertura Limitada,4.151,-73.642,7.5,6000,9000,15000,35
+303,Reliquia,Sectores Lejanos,4.135,-73.59,8.5,6000,10000,16000,38
+304,San Antonio,Sectores Lejanos,4.136,-73.589,8.6,6000,10000,16000,38
+305,El Brillante,Sectores Lejanos,4.137,-73.588,9.0,6000,11000,17000,40
+306,Porfía,Sectores Lejanos,4.095,-73.658,11.5,6000,14000,20000,45
+307,La Madrid,Sectores Lejanos,4.08,-73.66,13.0,6000,18000,24000,50
+308,13 de Mayo,Sectores Lejanos,4.138,-73.587,9.2,6000,11000,17000,40
+309,Juan Pablo,Sectores Lejanos,4.139,-73.586,8.7,6000,10000,16000,38
+310,Samán de la Rivera,Sectores Lejanos,4.14,-73.585,10.0,6000,12000,18000,42
+311,Canchas Primer Tiempo,Sectores Lejanos,4.141,-73.584,10.1,6000,12000,18000,42
+312,Balmoral,Sectores Lejanos,4.142,-73.583,10.2,6000,12000,18000,42
+313,Aeropuerto,Afueras de Villavicencio,4.168,-73.612,7.5,6000,9000,15000,32
+314,Vía Restrepo antes de la Vereda Kairo,Afueras de Villavicencio,4.175,-73.61,8.0,6000,9000,15000,33
+315,Pozo Azul,Afueras de Villavicencio,4.18,-73.608,8.8,6000,10000,16000,35
+316,Vereda Vanguardia,Afueras de Villavicencio,4.17,-73.611,8.5,6000,10000,16000,35
+317,Vereda El Kairo,Afueras de Villavicencio,4.185,-73.605,11.0,6000,14000,20000,42
+318,Vía Antigua Restrepo,Afueras de Villavicencio,4.178,-73.607,8.7,6000,10000,16000,35
+319,Vereda Argentina,Afueras de Villavicencio,4.19,-73.6,11.2,6000,14000,20000,43
+320,Vereda Apiay,Afueras de Villavicencio,4.075,-73.558,14.5,6000,19000,25000,50
+321,La Fuerza Aérea,Afueras de Villavicencio,4.07,-73.56,13.8,6000,18000,24000,48
+322,Cuarta División del Ejército,Afueras de Villavicencio,4.172,-73.62,13.5,6000,18000,24000,48
+323,Vereda Llanerita,Afueras de Villavicencio,4.065,-73.55,15.0,6000,19000,25000,52
+324,Villa Zuisa,Afueras de Villavicencio,4.06,-73.545,15.2,6000,19000,25000,52
+325,Vereda La Cecilia,Afueras de Villavicencio,4.1,-73.57,10.5,6000,12000,18000,40
+326,Vereda Barcelona,Afueras de Villavicencio,4.05,-73.54,13.0,6000,16000,22000,45
+327,Universidad de los Llanos Barcelona,Afueras de Villavicencio,4.048,-73.538,13.2,6000,16000,22000,46
+328,C.C. Único,Centros Comerciales,4.138,-73.63,3.5,6000,4000,10000,20
+329,C.C. Llanocentro,Centros Comerciales,4.148,-73.642,2.2,6000,5000,11000,18
+330,C.C. Villacentro,Centros Comerciales,4.147,-73.641,2.1,6000,5000,11000,18
+331,C.C. Unicentro,Centros Comerciales,4.142,-73.632,2.8,6000,4000,10000,19
+332,C.C. Viva,Centros Comerciales,4.1535,-73.6195,3.6,6000,5000,11000,22
+333,C.C. Primavera Urbana,Centros Comerciales,4.156,-73.618,3.9,6000,6000,12000,24
+334,C.C. La Primavera,Centros Comerciales,4.157,-73.617,3.5,6000,4000,10000,20

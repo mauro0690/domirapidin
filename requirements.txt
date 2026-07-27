@@ -1,0 +1,1 @@
+# DomiciliosRapidin - Standard Python Library (no third-party pip dependencies required)

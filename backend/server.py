@@ -336,7 +336,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 return
 
             if not codigo:
-                self.send_json_response({"status": "error", "message": "Ingresa el código/contraseña del negocio (ej. DomiRapidin)"}, status=400)
+                self.send_json_response({"status": "error", "message": "El código o contraseña del negocio es obligatorio."}, status=400)
                 return
 
             if nombre.lower() in ["admin", "administrador"] and codigo == ADMIN_PIN:
@@ -368,7 +368,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                         needs_migration = True
                 
                 if not is_valid:
-                    self.send_json_response({"status": "error", "message": "Contraseña/código incorrecto para el negocio. Pruebe con: DomiRapidin"}, status=401)
+                    self.send_json_response({"status": "error", "message": "Contraseña o código de acceso incorrecto."}, status=401)
                     return
                 
                 if needs_migration:
@@ -378,7 +378,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 cliente_actual = existente
             else:
                 if codigo != DEFAULT_CLIENT_CODE and codigo != ADMIN_PIN:
-                    self.send_json_response({"status": "error", "message": "Código de activación inválido. Código por defecto: DomiRapidin"}, status=401)
+                    self.send_json_response({"status": "error", "message": "Contraseña o código de activación incorrecto."}, status=401)
                     return
 
                 import random

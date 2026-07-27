@@ -1,0 +1,10 @@
+# Entornos y Configuración local
+.env
+
+# Archivos de base de datos local (producción/desarrollo dinámicos)
+backend/database/clientes.json
+backend/database/pedidos.json
+
+# Cache de Python
+__pycache__/
+*.pyc

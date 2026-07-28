@@ -17,6 +17,11 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- App CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- App Favicon -->
+    <link rel="icon" type="image/png" href="img/logo.png">
+    <link rel="icon" type="image/webp" href="img/rapidin_favicon.webp">
+    <link rel="shortcut icon" href="img/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/logo.png">
 </head>
 
 <body>
@@ -25,7 +30,7 @@
         <header class="navbar">
             <div class="navbar-brand">
                 <div class="logo-icon">
-                    <i class="fa-solid fa-truck-fast"></i>
+                    <img src="img/logo.png" alt="Domicilios Rapidin Logo" class="brand-logo-png brand-logo-img">
                 </div>
                 <div class="logo-text">
                     <span class="brand-title">Domicilios Rapidin<span class="brand-badge">App</span></span>
@@ -37,9 +42,6 @@
                 <button class="nav-tab active" data-tab="cotizador">
                     <i class="fa-solid fa-calculator"></i> Cotizar Domicilio
                 </button>
-                <button class="nav-tab" data-tab="pedidos">
-                    <i class="fa-solid fa-boxes-packing"></i> Mis Domicilios
-                </button>
                 <button class="nav-tab" data-tab="profile" id="nav-tab-profile" style="display: none;">
                     <i class="fa-solid fa-store"></i> Mi Negocio
                 </button>
@@ -49,7 +51,8 @@
             </nav>
 
             <div class="user-profile">
-                <button type="button" id="btn-user-menu-toggle" class="btn-menu-toggle" aria-label="Menú de usuario" title="Opciones de usuario">
+                <button type="button" id="btn-user-menu-toggle" class="btn-menu-toggle" aria-label="Menú de usuario"
+                    title="Opciones de usuario">
                     <div id="header-business-avatar" class="avatar">
                         <span>DL</span>
                     </div>
@@ -59,7 +62,8 @@
                 <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">
                     <div class="dropdown-header">
                         <span id="header-business-name" class="company-name">Acceso Libre</span>
-                        <span id="header-business-role" class="account-type"><i class="fa-solid fa-store"></i> Cliente</span>
+                        <span id="header-business-role" class="account-type"><i class="fa-solid fa-store"></i>
+                            Cliente</span>
                     </div>
                     <div class="dropdown-divider"></div>
                     <div class="dropdown-actions">
@@ -83,8 +87,9 @@
                 <div class="visitor-hero-bg"></div>
                 <div class="visitor-hero-content">
                     <div class="visitor-logo-badge">
-                        <div class="visitor-logo-icon"><i class="fa-solid fa-truck-fast"></i></div>
-                        <span class="visitor-logo-label">RAPIDIN</span>
+                        <div class="visitor-logo-icon">
+                            <img src="img/logo.png" alt="Domicilios Rapidin Logo" class="visitor-logo-img">
+                        </div>
                     </div>
                     <h1 class="visitor-title">DOMICILIOS RAPIDIN</h1>
                     <p class="visitor-subtitle">La plataforma de domicilios más confiable de
@@ -353,41 +358,6 @@
                 </div>
             </section>
 
-            <!-- TAB 2: MIS DOMICILIOS / SOLICITUDES -->
-            <section id="tab-pedidos" class="tab-content">
-                <div class="section-container card">
-                    <div class="section-header">
-                        <div>
-                            <h2>Historial de Domicilios del Negocio</h2>
-                            <p>Listado de solicitudes realizadas por tu empresa.</p>
-                        </div>
-                        <button id="btn-nueva-solicitud-tab" class="btn btn-primary">
-                            <i class="fa-solid fa-plus"></i> Nueva Solicitud
-                        </button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>ID Pedido</th>
-                                    <th>Fecha / Hora</th>
-                                    <th>Empresa</th>
-                                    <th>Barrio Destino</th>
-                                    <th>Dirección</th>
-                                    <th>Distancia</th>
-                                    <th>Valor Total</th>
-                                    <th>Estado</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pedidos-table-body">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
 
             <!-- TAB 3: PANEL ADMINISTRATIVO (NEGOCIOS & HOJA DE CÁLCULO) -->
             <section id="tab-backend" class="tab-content">
@@ -482,10 +452,12 @@
                             style="text-align: center; padding: 3.5rem 1.5rem; background: var(--slate-50); border: 2px dashed var(--slate-200); border-radius: var(--radius-md);">
                             <i class="fa-solid fa-table-cells text-blue"
                                 style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-500);"></i>
-                            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--slate-800); margin-bottom: 0.4rem;">
+                            <h3
+                                style="font-size: 1.15rem; font-weight: 800; color: var(--slate-800); margin-bottom: 0.4rem;">
                                 Selecciona un Negocio para Gestionar sus Tarifas</h3>
                             <p style="font-size: 0.88rem; color: var(--slate-500); max-width: 500px; margin: 0 auto;">
-                                Por favor elige la empresa o negocio en el menú desplegable superior para cargar y modificar su base de datos de precios de domicilios por barrio.
+                                Por favor elige la empresa o negocio en el menú desplegable superior para cargar y
+                                modificar su base de datos de precios de domicilios por barrio.
                             </p>
                         </div>
 

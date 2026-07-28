@@ -3,7 +3,7 @@
  * Multi-Tenant Business Session, Admin Mode & Tariff Lookup
  */
 
-window.RapidinApp = (function() {
+window.RapidinApp = (function () {
     let barriosData = [];
     let clientsData = [];
     let selectedCotizacion = null;
@@ -255,7 +255,6 @@ window.RapidinApp = (function() {
             window.RapidinMap.setOrigin(business.latitud || 4.1488, business.longitud || -73.6339, business.nombre, business.direccion);
         }
 
-        loadPedidos();
         loadBarrios();
         // Load profile data into Mi Negocio tab
         loadProfileFromBusiness(business);
@@ -297,7 +296,7 @@ window.RapidinApp = (function() {
         const currentAddr = activeBusiness.direccion || "Calle 38 #31-42, Centro - Villavicencio";
         const newAddress = prompt("Ingresa la nueva dirección de origen de tu negocio:", currentAddr);
         if (newAddress === null) return;
-        
+
         const trimmed = newAddress.trim();
         if (!trimmed) {
             showToast("⚠️ La dirección no puede estar vacía.");
@@ -328,10 +327,10 @@ window.RapidinApp = (function() {
     function populateClientDbSelect() {
         const select = document.getElementById('admin-select-client-db');
         if (!select) return;
-        
+
         const currentValue = select.value;
         select.innerHTML = '';
-        
+
         const defaultOpt = document.createElement('option');
         defaultOpt.value = '';
         defaultOpt.textContent = '-- Selecciona un Negocio --';
@@ -345,7 +344,7 @@ window.RapidinApp = (function() {
                 select.appendChild(opt);
             });
         }
-        
+
         if (currentValue && Array.from(select.options).some(o => o.value === currentValue)) {
             select.value = currentValue;
         } else {
@@ -358,10 +357,10 @@ window.RapidinApp = (function() {
     function populateOriginClientSelect() {
         const select = document.getElementById('origin-admin-select-client');
         if (!select) return;
-        
+
         const currentValue = select.value || (activePricingClient || '');
         select.innerHTML = '';
-        
+
         if (clientsData.length === 0) {
             const opt = document.createElement('option');
             opt.value = '';
@@ -375,7 +374,7 @@ window.RapidinApp = (function() {
                 select.appendChild(opt);
             });
         }
-        
+
         if (currentValue && Array.from(select.options).some(o => o.value === currentValue)) {
             select.value = currentValue;
         } else if (clientsData.length > 0) {
@@ -386,12 +385,12 @@ window.RapidinApp = (function() {
 
     function updateActivePricingClient(clientName) {
         activePricingClient = clientName;
-        
+
         const selectDb = document.getElementById('admin-select-client-db');
         if (selectDb && selectDb.value !== clientName) {
             selectDb.value = clientName;
         }
-        
+
         const selectOrigin = document.getElementById('origin-admin-select-client');
         if (selectOrigin && selectOrigin.value !== clientName) {
             selectOrigin.value = clientName;
@@ -480,12 +479,12 @@ window.RapidinApp = (function() {
                     isAdmin = true;
                     closeAdminModal();
                     showToast("🔑 Sesión de Administrador Máster concedida.");
-                    
+
                     const adminSession = { id: 'ADMIN', nombre: 'Administrador', rol: 'admin' };
                     activeBusiness = adminSession;
                     localStorage.setItem('rapidin_business', JSON.stringify(adminSession));
                     applyBusinessSession(adminSession);
-                    
+
                     document.querySelector('[data-tab="backend"]')?.click();
                     loadRegisteredBusinesses();
                 } else {
@@ -583,7 +582,7 @@ window.RapidinApp = (function() {
                 if (input) {
                     const isPassword = input.type === 'password';
                     input.type = isPassword ? 'text' : 'password';
-                    
+
                     const icon = btn.querySelector('i');
                     if (icon) {
                         icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
@@ -655,7 +654,7 @@ window.RapidinApp = (function() {
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const targetTab = tab.dataset.tab;
-                
+
                 if (targetTab === 'backend' && !isAdmin) {
                     openAdminModal();
                     return;
@@ -678,16 +677,8 @@ window.RapidinApp = (function() {
                 } else if (targetTab === 'backend') {
                     window.RapidinSpreadsheet.load();
                     if (isAdmin) renderClientsAdminTable(clientsData);
-                } else if (targetTab === 'pedidos') {
-                    loadPedidos();
                 }
             });
-        });
-
-        document.getElementById('btn-nueva-solicitud-tab')?.addEventListener('click', () => {
-            const cotTab = document.querySelector('[data-tab="cotizador"]');
-            if (cotTab) cotTab.click();
-            document.getElementById('barrio-input')?.focus();
         });
     }
 
@@ -745,7 +736,7 @@ window.RapidinApp = (function() {
                 return;
             }
 
-            const matches = barriosData.filter(b => 
+            const matches = barriosData.filter(b =>
                 b.barrio.toLowerCase().includes(val) || b.zona.toLowerCase().includes(val)
             );
 
@@ -911,93 +902,11 @@ window.RapidinApp = (function() {
                     showToast(`✅ Domicilio ${res.pedido.id} creado con éxito para ${res.pedido.barrio_destino}.`);
                     document.getElementById('order-direccion').value = '';
                     document.getElementById('order-notas').value = '';
-                    
-                    document.querySelector('[data-tab="pedidos"]')?.click();
                 }
             } catch (err) {
                 console.error("Error al crear pedido:", err);
                 showToast("❌ Error al guardar la solicitud.");
             }
-        });
-    }
-
-    /* Load Business Orders */
-    async function loadPedidos() {
-        const tbody = document.getElementById('pedidos-table-body');
-        if (!tbody) return;
-
-        const clienteQuery = isAdmin ? 'Administrador' : (activeBusiness ? encodeURIComponent(activeBusiness.nombre) : '');
-
-        try {
-            const res = await fetch(`/api/pedidos?cliente=${clienteQuery}`);
-            const data = await res.json();
-            if (data.status === 'success') {
-                renderPedidosTable(data.data, tbody);
-            }
-        } catch (err) {
-            console.error("Error al cargar pedidos:", err);
-        }
-    }
-
-    function renderPedidosTable(pedidos, tbody) {
-        tbody.innerHTML = '';
-        if (pedidos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#64748b; padding:2rem;">No hay domicilios registrados aún.</td></tr>`;
-            return;
-        }
-
-        pedidos.forEach(p => {
-            const tr = document.createElement('tr');
-            let statusClass = 'confirmado';
-            if (p.estado.toLowerCase() === 'entregado') statusClass = 'entregado';
-            if (p.estado.toLowerCase() === 'en camino') statusClass = 'camino';
-
-            tr.innerHTML = `
-                <td><strong>${escapeHtml(p.id)}</strong></td>
-                <td>${escapeHtml(p.fecha)}</td>
-                <td><span class="badge-blue">${escapeHtml(p.cliente_empresa)}</span></td>
-                <td><strong>${escapeHtml(p.barrio_destino)}</strong></td>
-                <td>${escapeHtml(p.direccion_destino)}</td>
-                <td>${p.distancia_km} km</td>
-                <td style="font-weight:800; color:#1d4ed8;">$${p.tarifa_total.toLocaleString('es-CO')} COP</td>
-                <td><span class="status-badge ${statusClass}">${escapeHtml(p.estado)}</span></td>
-                <td>
-                    <div style="display: flex; gap: 4px; align-items: center;">
-                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="alert('Guía corporativa ${p.id} lista.')">
-                            <i class="fa-solid fa-print"></i> Guía
-                        </button>
-                        <button class="btn-del-pedido" data-id="${p.id}" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 4px;" title="Eliminar Solicitud">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        tbody.querySelectorAll('.btn-del-pedido').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const pedidoId = e.currentTarget.dataset.id;
-                if (confirm(`¿Estás seguro de que deseas eliminar la solicitud ${pedidoId}?`)) {
-                    try {
-                        const response = await fetch('/api/pedidos/delete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: pedidoId })
-                        });
-                        const res = await response.json();
-                        if (res.status === 'success') {
-                            showToast("🗑️ Solicitud de domicilio eliminada.");
-                            loadPedidos();
-                        } else {
-                            showToast("❌ " + res.message);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showToast("❌ Error al eliminar la solicitud.");
-                    }
-                }
-            });
         });
     }
 
@@ -1009,7 +918,7 @@ window.RapidinApp = (function() {
         toggle.addEventListener('click', () => {
             const isPassword = input.type === 'password';
             input.type = isPassword ? 'text' : 'password';
-            
+
             const icon = toggle.querySelector('i');
             if (icon) {
                 icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
@@ -1028,7 +937,7 @@ window.RapidinApp = (function() {
     }
 
     function escapeHtml(str) {
-        return String(str || '').replace(/[&<>"']/g, function(m) {
+        return String(str || '').replace(/[&<>"']/g, function (m) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
         });
     }
@@ -1066,7 +975,7 @@ window.RapidinApp = (function() {
                         <span class="biz-card-category"><i class="fa-solid fa-tag"></i> ${cat}</span>
                         <h3 class="biz-card-name">${name}</h3>
                         <p class="biz-card-desc">${desc}</p>
-                        <span class="biz-card-cta"><i class="fa-solid fa-truck-fast"></i> Domicilios Rapidin</span>
+                        <span class="biz-card-cta"><img src="img/logo.png" alt="Logo" class="biz-cta-logo-img"> Domicilios Rapidin</span>
                     </div>
                 </div>`;
         }).join('');

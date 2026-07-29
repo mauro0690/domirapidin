@@ -142,14 +142,16 @@
                             </div>
                         </div>
 
-                        <!-- Barrio Autocomplete Input -->
+                        <!-- Barrio / Dirección Autocomplete Input -->
                         <div class="search-box-wrapper">
-                            <label for="barrio-input" class="input-label">Escribe el Barrio o Localidad de
-                                Destino</label>
+                            <div class="search-label-row">
+                                <label for="barrio-input" class="input-label"><i class="fa-solid fa-magnifying-glass-location"></i> Escribe Barrio, Localidad o Dirección Exacta</label>
+                                <span class="badge-search-mode"><i class="fa-solid fa-bolt"></i> Búsqueda Inteligente</span>
+                            </div>
                             <div class="search-input-container">
                                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                                 <input type="text" id="barrio-input"
-                                    placeholder="Ej. Barzal, Amarilo, El Buque, Catama, Porfía..." autocomplete="off">
+                                    placeholder="Ej: Barzal, Calle 15 #38-20 Barzal, Amarilo, Cra 40 #12 Catama..." autocomplete="off">
                                 <button id="clear-search-btn" class="clear-btn" style="display: none;">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
@@ -177,6 +179,15 @@
                                     <span class="price-currency">$</span>
                                     <span id="res-price-amount" class="price-val">0</span>
                                     <span class="price-unit">COP</span>
+                                </div>
+                            </div>
+
+                            <!-- Display exact address if specified -->
+                            <div id="res-direccion-box" class="exact-address-box" style="display: none;">
+                                <i class="fa-solid fa-location-dot exact-address-icon"></i>
+                                <div>
+                                    <span class="exact-address-label">Dirección Exacta Cotizada</span>
+                                    <div id="res-direccion-exacta" class="exact-address-val"></div>
                                 </div>
                             </div>
 

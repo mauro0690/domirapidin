@@ -719,7 +719,7 @@ window.RapidinApp = (function () {
         });
     }
 
-    /* Search Input & Live Autocomplete */
+    /* Search Input & Live Autocomplete (Smart Address & Barrio Search) */
     function initSearchAndAutocomplete() {
         const input = document.getElementById('barrio-input');
         const clearBtn = document.getElementById('clear-search-btn');
@@ -727,8 +727,16 @@ window.RapidinApp = (function () {
 
         if (!input || !dropdown) return;
 
+        // Función para extraer barrio presente en texto de dirección
+        function detectBarrioFromAddress(text) {
+            const valLower = text.toLowerCase();
+            const barriosSorted = [...barriosData].sort((a, b) => b.barrio.length - a.barrio.length);
+            return barriosSorted.find(b => valLower.includes(b.barrio.toLowerCase()));
+        }
+
         input.addEventListener('input', (e) => {
-            const val = e.target.value.trim().toLowerCase();
+            const rawVal = e.target.value;
+            const val = rawVal.trim().toLowerCase();
             clearBtn.style.display = val ? 'block' : 'none';
 
             if (!val) {
@@ -736,11 +744,39 @@ window.RapidinApp = (function () {
                 return;
             }
 
+            // Comprobar si el texto ingresado parece una dirección (contiene números, #, o prefijos de vía)
+            const isAddressLike = /[0-9#]|\b(calle|cra|carrera|cll|av|avenida|diagonal|transversal|trv|dg|tv|apto|casa|manzana|mz)\b/i.test(rawVal);
+            const detectedBarrio = detectBarrioFromAddress(rawVal);
+
+            // Filtrar coincidencias directas de barrio o zona
             const matches = barriosData.filter(b =>
                 b.barrio.toLowerCase().includes(val) || b.zona.toLowerCase().includes(val)
             );
 
-            renderAutocompleteDropdown(matches, dropdown, input);
+            renderAutocompleteDropdown(matches, dropdown, input, rawVal, isAddressLike, detectedBarrio);
+        });
+
+        // Soporte para presionar ENTER en el input de búsqueda
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const rawVal = input.value.trim();
+                if (!rawVal) return;
+
+                dropdown.classList.remove('show');
+                const detectedBarrio = detectBarrioFromAddress(rawVal);
+                const isAddressLike = /[0-9#]|\b(calle|cra|carrera|cll|av|avenida|diagonal|transversal|trv|dg|tv)\b/i.test(rawVal);
+
+                if (isAddressLike) {
+                    const bName = detectedBarrio ? detectedBarrio.barrio : '';
+                    seleccionarBarrio(bName, rawVal);
+                } else if (detectedBarrio) {
+                    seleccionarBarrio(detectedBarrio.barrio, '');
+                } else {
+                    // Si ingresó texto general, intentar cotizar como barrio
+                    seleccionarBarrio(rawVal, '');
+                }
+            }
         });
 
         clearBtn.addEventListener('click', () => {
@@ -757,14 +793,35 @@ window.RapidinApp = (function () {
         });
     }
 
-    function renderAutocompleteDropdown(matches, dropdown, input) {
-        if (matches.length === 0) {
-            dropdown.innerHTML = `<div class="suggestion-item"><span class="item-sub">No se encontró el barrio. Revisa la ortografía o agrégalo en la base de datos backend.</span></div>`;
+    function renderAutocompleteDropdown(matches, dropdown, input, rawSearchVal, isAddressLike, detectedBarrio) {
+        dropdown.innerHTML = '';
+
+        // Si el usuario ingresó una dirección exacta, mostrar una opción destacada de Dirección Cotizada
+        if (isAddressLike) {
+            const addrDiv = document.createElement('div');
+            addrDiv.className = 'suggestion-item address-item';
+            const barrioTxt = detectedBarrio ? `Barrio detectado: <strong>${escapeHtml(detectedBarrio.barrio)}</strong>` : `Buscar barrio en dirección...`;
+            addrDiv.innerHTML = `
+                <div>
+                    <div class="item-title"><i class="fa-solid fa-location-dot text-blue"></i> Cotizar Dirección: <strong>${escapeHtml(rawSearchVal)}</strong></div>
+                    <div class="item-sub">${barrioTxt}</div>
+                </div>
+                <div class="item-price"><i class="fa-solid fa-arrow-right"></i></div>
+            `;
+            addrDiv.addEventListener('click', () => {
+                dropdown.classList.remove('show');
+                const bName = detectedBarrio ? detectedBarrio.barrio : '';
+                seleccionarBarrio(bName, rawSearchVal);
+            });
+            dropdown.appendChild(addrDiv);
+        }
+
+        if (matches.length === 0 && !isAddressLike) {
+            dropdown.innerHTML = `<div class="suggestion-item"><span class="item-sub">No se encontró el barrio ni la dirección. Revisa la ortografía o ingresa una dirección completa.</span></div>`;
             dropdown.classList.add('show');
             return;
         }
 
-        dropdown.innerHTML = '';
         matches.forEach(item => {
             const div = document.createElement('div');
             div.className = 'suggestion-item';
@@ -776,9 +833,13 @@ window.RapidinApp = (function () {
                 <div class="item-price">$${item.tarifa_total.toLocaleString('es-CO')}</div>
             `;
             div.addEventListener('click', () => {
-                input.value = item.barrio;
+                input.value = isAddressLike ? rawSearchVal : item.barrio;
                 dropdown.classList.remove('show');
-                seleccionarBarrio(item.barrio);
+                if (isAddressLike) {
+                    seleccionarBarrio(item.barrio, rawSearchVal);
+                } else {
+                    seleccionarBarrio(item.barrio, '');
+                }
             });
             dropdown.appendChild(div);
         });
@@ -786,17 +847,23 @@ window.RapidinApp = (function () {
         dropdown.classList.add('show');
     }
 
-    /* Query Quotation for selected barrio */
-    async function seleccionarBarrio(nombreBarrio) {
+    /* Query Quotation for selected barrio / direccion */
+    async function seleccionarBarrio(nombreBarrio, direccionExacta = '') {
         if (!activeBusiness) {
             // Solicitar autenticación de cliente antes de cotizar
-            openLoginModal(nombreBarrio);
+            openLoginModal(nombreBarrio || direccionExacta);
             return;
         }
 
         const clienteName = activePricingClient || activeBusiness.nombre;
         try {
-            const response = await fetch(`/api/cotizar?barrio=${encodeURIComponent(nombreBarrio)}&cliente=${encodeURIComponent(clienteName)}`);
+            const queryParams = new URLSearchParams({
+                cliente: clienteName,
+                barrio: nombreBarrio || '',
+                direccion: direccionExacta || ''
+            });
+
+            const response = await fetch(`/api/cotizar?${queryParams.toString()}`);
             const data = await response.json();
 
             if (data.status === 'success') {
@@ -804,15 +871,16 @@ window.RapidinApp = (function () {
                 renderResultCard(selectedCotizacion);
                 const destData = {
                     ...selectedCotizacion.destino,
+                    direccion_exacta: selectedCotizacion.direccion_exacta,
                     tarifa_total: selectedCotizacion.tarifa_total,
                     distancia_km: selectedCotizacion.distancia_km
                 };
                 window.RapidinMap.updateRoute(destData);
             } else {
-                showToast("⚠️ " + (data.message || "Barrio no encontrado."));
+                showToast("⚠️ " + (data.message || "No se pudo realizar la cotización para el destino seleccionado."));
             }
         } catch (err) {
-            console.error("Error al cotizar barrio:", err);
+            console.error("Error al cotizar barrio/dirección:", err);
             showToast("❌ Error al conectar con el servidor backend.");
         }
     }
@@ -826,6 +894,23 @@ window.RapidinApp = (function () {
 
         document.getElementById('res-barrio-name').textContent = cot.destino.barrio;
         document.getElementById('res-barrio-zona').textContent = `Zona ${cot.destino.zona}`;
+
+        // Mostrar u ocultar bloque de dirección exacta
+        const dirBox = document.getElementById('res-direccion-box');
+        const dirVal = document.getElementById('res-direccion-exacta');
+        if (dirBox && dirVal) {
+            if (cot.direccion_exacta) {
+                if (cot.barrio_asignado_cercano) {
+                    dirVal.innerHTML = `${escapeHtml(cot.direccion_exacta)} <small style="display:block; color:#475569; font-weight:600; font-size:0.8rem; margin-top:2px;"><i class="fa-solid fa-crosshairs text-blue"></i> Barrio asignado por cercanía: <strong>${escapeHtml(cot.barrio_asignado_cercano)}</strong></small>`;
+                } else {
+                    dirVal.textContent = cot.direccion_exacta;
+                }
+                dirBox.style.display = 'flex';
+            } else {
+                dirBox.style.display = 'none';
+            }
+        }
+
         document.getElementById('res-price-amount').textContent = cot.tarifa_total.toLocaleString('es-CO');
         document.getElementById('res-distancia').textContent = `${cot.distancia_km} km`;
         document.getElementById('res-tiempo').textContent = `${cot.tiempo_entrega_min} min`;
@@ -867,6 +952,13 @@ window.RapidinApp = (function () {
             document.getElementById('order-barrio').value = selectedCotizacion.destino.barrio;
             document.getElementById('order-precio').value = `$${selectedCotizacion.tarifa_total.toLocaleString('es-CO')} COP`;
             document.getElementById('order-empresa').value = activeBusiness.nombre;
+
+            // Autocompletar la dirección exacta si el usuario la cotizó previamente
+            const dirInput = document.getElementById('order-direccion');
+            if (dirInput && selectedCotizacion.direccion_exacta) {
+                dirInput.value = selectedCotizacion.direccion_exacta;
+            }
+
             modal.style.display = 'flex';
         });
 

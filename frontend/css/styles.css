@@ -2522,3 +2522,69 @@ body {
         padding: 3px 8px;
     }
 }
+
+/* Smart Address Search Styles */
+.search-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.badge-search-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1d4ed8;
+    font-size: 0.73rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid #bfdbfe;
+}
+
+.exact-address-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-left: 4px solid var(--primary-600);
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.85rem;
+}
+
+.exact-address-icon {
+    font-size: 1.25rem;
+    color: var(--primary-600);
+    flex-shrink: 0;
+}
+
+.exact-address-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--slate-500);
+}
+
+.exact-address-val {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    word-break: break-word;
+}
+
+.suggestion-item.address-item {
+    background-color: #f0f9ff;
+    border-left: 3px solid var(--primary-500);
+}
+
+.suggestion-item.address-item:hover {
+    background-color: #e0f2fe;
+}

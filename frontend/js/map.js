@@ -115,9 +115,13 @@ window.RapidinMap = (function() {
             iconAnchor: [19, 19]
         });
 
+        const isExactAddr = !!destinationData.direccion_exacta;
+        const addrHtml = isExactAddr ? `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 700;"><i class="fa-solid fa-location-dot" style="color: #2563eb;"></i> ${destinationData.direccion_exacta}</div>` : '';
+
         destinationMarker = L.marker(destCoords, { icon: destIcon }).addTo(map);
         destinationMarker.bindPopup(`
             <div style="font-family: sans-serif; font-size: 13px;">
+                ${addrHtml}
                 <strong style="color: #1e40af;"><i class="fa-solid fa-flag-checkered"></i> Barrio: ${destinationData.barrio}</strong><br>
                 <span>Zona: ${destinationData.zona}</span><br>
                 <strong style="color: #0f4c81;">Tarifa: $${destinationData.tarifa_total.toLocaleString('es-CO')} COP</strong>
@@ -141,7 +145,9 @@ window.RapidinMap = (function() {
         const overlay = document.getElementById('map-overlay-info');
         const overlayText = document.getElementById('map-overlay-text');
         if (overlay && overlayText) {
-            overlayText.innerHTML = `Ruta a <strong>${destinationData.barrio}</strong> (${destinationData.distancia_km} km approx)`;
+            overlayText.innerHTML = isExactAddr 
+                ? `Ruta a <strong>${destinationData.direccion_exacta}</strong> (${destinationData.barrio})`
+                : `Ruta a <strong>${destinationData.barrio}</strong> (${destinationData.distancia_km} km approx)`;
             overlay.style.display = 'flex';
         }
     }

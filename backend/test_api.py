@@ -45,6 +45,24 @@ def run_tests():
         assert "google_maps_url" in cot, "URL de Google Maps no generada"
         print(f"✅ /api/cotizar?barrio=Amarilo OK: Tarifa ${cot['tarifa_total']:,} COP | Distancia {cot['distancia_km']} km.")
 
+        # 2b. Test /api/cotizar?direccion=Calle%2015%20%2338-20%20Rosales
+        req = opener.open(f"{BASE_URL}/api/cotizar?direccion=Calle%2015%20%2338-20%20Rosales")
+        res = json.loads(req.read().decode('utf-8'))
+        assert res["status"] == "success", "Error en /api/cotizar con direccion"
+        cot_dir = res["cotizacion"]
+        assert cot_dir["direccion_exacta"] == "Calle 15 #38-20 Rosales", "Dirección exacta retornada incorrecta"
+        assert "rosales" in cot_dir["destino"]["barrio"].lower(), "Barrio no detectado a partir de la dirección"
+        print(f"✅ /api/cotizar?direccion=... (con barrio) OK: Dirección '{cot_dir['direccion_exacta']}' asociada al barrio '{cot_dir['destino']['barrio']}'.")
+
+        # 2c. Test /api/cotizar?direccion=Carrera%2033%20%2340-10 (Dirección pura por nomenclatura vial sin barrio)
+        req = opener.open(f"{BASE_URL}/api/cotizar?direccion=Carrera%2033%20%2340-10")
+        res = json.loads(req.read().decode('utf-8'))
+        assert res["status"] == "success", "Error en /api/cotizar con dirección por nomenclatura vial"
+        cot_geo = res["cotizacion"]
+        assert cot_geo["direccion_exacta"] == "Carrera 33 #40-10", "Dirección exacta retornada incorrecta"
+        assert cot_geo["destino"]["barrio"], "No se asignó barrio cercano a la dirección"
+        print(f"✅ /api/cotizar?direccion=... (nomenclatura pura) OK: Dirección '{cot_geo['direccion_exacta']}' geocodificada y emparejada espacialmente al barrio '{cot_geo['destino']['barrio']}'.")
+
         # 3. Test /api/hoja-calculo
         req = opener.open(f"{BASE_URL}/api/hoja-calculo")
         res = json.loads(req.read().decode('utf-8'))

@@ -4,8 +4,10 @@ import socketserver
 import json
 import csv
 import urllib.parse
+import urllib.request
 import os
 import sys
+import math
 from datetime import datetime
 import hashlib
 import secrets
@@ -17,6 +19,36 @@ FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
 CSV_FILE = os.path.join(BASE_DIR, 'database', 'tarifario_villavicencio.csv')
 PEDIDOS_FILE = os.path.join(BASE_DIR, 'database', 'pedidos.json')
 CLIENTES_FILE = os.path.join(BASE_DIR, 'database', 'clientes.json')
+
+def haversine_km(lat1, lon1, lat2, lon2):
+    try:
+        lat1, lon1, lat2, lon2 = float(lat1), float(lon1), float(lat2), float(lon2)
+        R = 6371.0  # Radio de la Tierra en km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+    except Exception:
+        return 99999.0
+
+def geocode_address(direccion):
+    if not direccion:
+        return None
+    try:
+        query_str = urllib.parse.quote(f"{direccion}, Villavicencio, Meta, Colombia")
+        url = f"https://nominatim.openstreetmap.org/search?q={query_str}&format=json&addressdetails=1&limit=1"
+        req = urllib.request.Request(url, headers={'User-Agent': 'DomiciliosRapidin/1.0'})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            if data and len(data) > 0:
+                lat = float(data[0]['lat'])
+                lon = float(data[0]['lon'])
+                display_name = data[0].get('display_name', '')
+                return {"lat": lat, "lon": lon, "display_name": display_name}
+    except Exception as e:
+        print(f"Geocoding info ({direccion}): {e}", file=sys.stderr)
+    return None
 
 def load_env():
     env_file = os.path.join(os.path.dirname(BASE_DIR), '.env')
@@ -188,6 +220,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             barrios = load_spreadsheet_data(csv_path)
             b_name = query.get('barrio', [''])[0].strip()
             b_id = query.get('id', [''])[0].strip()
+            direccion = query.get('direccion', [''])[0].strip()
 
             target = None
             if b_id:
@@ -195,18 +228,63 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             elif b_name:
                 target = next((b for b in barrios if b['barrio'].lower() == b_name.lower()), None)
                 if not target:
-                    target = next((b for b in barrios if b_name.lower() in b['barrio'].lower()), None)
+                    target = next((b for b in barrios if b_name.lower() in b['barrio'].lower() or b['barrio'].lower() in b_name.lower()), None)
+
+            geo_res = None
+            is_geocoded_proximity = False
+
+            # Si no hay barrio coincidente directo pero se envió dirección
+            if not target and direccion:
+                dir_lower = direccion.lower()
+                # 1. Intentar coincidencia de texto del nombre del barrio en la dirección
+                barrios_sorted = sorted(barrios, key=lambda x: len(x['barrio']), reverse=True)
+                for b in barrios_sorted:
+                    if b['barrio'].lower() in dir_lower:
+                        target = b
+                        break
+
+                # 2. Si sigue sin coincidencia de texto, geocodificar la dirección y calcular el barrio más cercano por Haversine
+                if not target:
+                    geo_res = geocode_address(direccion)
+                    if geo_res:
+                        closest_barrio = None
+                        min_dist = float('inf')
+                        for b in barrios:
+                            dist = haversine_km(geo_res['lat'], geo_res['lon'], b['latitud'], b['longitud'])
+                            if dist < min_dist:
+                                min_dist = dist
+                                closest_barrio = b
+                        if closest_barrio:
+                            target = closest_barrio
+                            is_geocoded_proximity = True
+
+            # Si se encontró un barrio explícito y también hay dirección, intentar geocodificar la dirección para ubicarla en el mapa
+            if target and direccion and not geo_res:
+                geo_res = geocode_address(direccion)
 
             if not target:
-                self.send_json_response({"status": "error", "message": f"Barrio '{b_name}' no encontrado en la base de datos de {cliente_nombre}."}, status=404)
+                err_msg = f"No se pudo ubicar ni calcular tarifa para la dirección o barrio '{b_name or direccion}' en {cliente_nombre}."
+                self.send_json_response({"status": "error", "message": err_msg}, status=404)
                 return
 
-            google_maps_url = (
-                f"https://www.google.com/maps/dir/?api=1"
-                f"&origin={ORIGEN_SEDE['latitud']},{ORIGEN_SEDE['longitud']}"
-                f"&destination={target['latitud']},{target['longitud']}"
-                f"&travelmode=driving"
-            )
+            final_lat = geo_res['lat'] if geo_res else target['latitud']
+            final_lon = geo_res['lon'] if geo_res else target['longitud']
+
+            if direccion:
+                dest_query = urllib.parse.quote(f"{direccion}, Villavicencio, Meta, Colombia")
+                google_maps_url = (
+                    f"https://www.google.com/maps/dir/?api=1"
+                    f"&origin={ORIGEN_SEDE['latitud']},{ORIGEN_SEDE['longitud']}"
+                    f"&destination={dest_query}"
+                    f"&travelmode=driving"
+                )
+            else:
+                google_maps_url = (
+                    f"https://www.google.com/maps/dir/?api=1"
+                    f"&origin={ORIGEN_SEDE['latitud']},{ORIGEN_SEDE['longitud']}"
+                    f"&destination={final_lat},{final_lon}"
+                    f"&travelmode=driving"
+                )
 
             response_payload = {
                 "status": "success",
@@ -217,9 +295,13 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                         "id": target["id"],
                         "barrio": target["barrio"],
                         "zona": target["zona"],
-                        "latitud": target["latitud"],
-                        "longitud": target["longitud"]
+                        "latitud": final_lat,
+                        "longitud": final_lon,
+                        "barrio_latitud": target["latitud"],
+                        "barrio_longitud": target["longitud"]
                     },
+                    "direccion_exacta": direccion if direccion else None,
+                    "barrio_asignado_cercano": target["barrio"] if is_geocoded_proximity else None,
                     "distancia_km": target["distancia_km"],
                     "tarifa_base": target["tarifa_base"],
                     "recargo_distancia": target["recargo_distancia"],

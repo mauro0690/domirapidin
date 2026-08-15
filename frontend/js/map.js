@@ -1,183 +1,124 @@
 /**
- * DomiciliosRapidin Corporativo - Map Controller (Villavicencio, Colombia)
- * Integrated Leaflet Map with Google Maps styled tiles & routing visualizer
+ * DomiciliosRapidin Corporativo - Direct Google Maps Live Controller & Route Visualizer
+ * Renders Live Google Maps Driving Routes (Origen Sede -> Destino Domicilio)
  */
 
 window.RapidinMap = (function() {
-    let map = null;
-    let originMarker = null;
-    let destinationMarker = null;
-    let routeLine = null;
-
-    // Coordenadas Sede Principal (Centro de Villavicencio)
+    let mapContainer = null;
     let currentOriginCoords = [4.1488, -73.6339];
-    let currentOriginTitle = "Sede Principal Rapidin - Centro";
-    let currentOriginAddress = "Calle 38 #31-42, Centro";
+    let currentOriginTitle = "Sede Principal Rapidin";
+    let currentOriginAddress = "Calle 38 #31-42, Centro, Villavicencio";
+    let activeDestinationQuery = null;
 
     function initMap() {
-        if (map) return; // Ya inicializado
-
-        const mapContainer = document.getElementById('map');
+        mapContainer = document.getElementById('map');
         if (!mapContainer) return;
 
-        // Inicializar mapa centrado en Villavicencio
-        map = L.map('map', {
-            center: currentOriginCoords,
-            zoom: 14,
-            zoomControl: true
-        });
+        // Render initial Google Maps Live View centered on Sede Origin
+        renderGoogleSingleLocation(currentOriginAddress || "Centro, Villavicencio");
+    }
 
-        // Tile layer estilo Google Maps / CartoDB Positron (Limpio y claro)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
+    function renderGoogleSingleLocation(searchQuery) {
+        if (!mapContainer) return;
 
-        // Icono Sede Origen (Edificio Corporativo)
-        const originIcon = L.divIcon({
-            className: 'custom-map-pin origin-pin',
-            html: `<div style="background-color: #0f4c81; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"><i class="fa-solid fa-building"></i></div>`,
-            iconSize: [34, 34],
-            iconAnchor: [17, 17]
-        });
+        const cleanQuery = encodeURIComponent(`${searchQuery}, Villavicencio, Meta, Colombia`);
+        const googleEmbedUrl = `https://maps.google.com/maps?q=${cleanQuery}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
-        // Marcador Sede Origen
-        originMarker = L.marker(currentOriginCoords, { icon: originIcon }).addTo(map);
-        originMarker.bindPopup(`
-            <div style="font-family: sans-serif; font-size: 13px;">
-                <strong style="color: #0f4c81;"><i class="fa-solid fa-building"></i> ${currentOriginTitle}</strong><br>
-                <span>${currentOriginAddress}</span><br>
-                <small style="color: #64748b;">Punto de Despacho</small>
+        mapContainer.innerHTML = `
+            <div style="position: relative; width: 100%; height: 100%; min-height: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <iframe 
+                    id="google-maps-iframe"
+                    title="Google Maps Ubicación de Origen"
+                    width="100%" 
+                    height="100%" 
+                    style="border:0; min-height: 400px;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="${googleEmbedUrl}">
+                </iframe>
+                <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; font-family: sans-serif; font-size: 12px; font-weight: 700; color: #1e293b; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-building" style="color: #1d4ed8; font-size: 14px;"></i>
+                    <span>Sede de Origen Negocio</span>
+                </div>
             </div>
-        `);
+        `;
+    }
 
-        // Evento recentrar mapa
-        const recenterBtn = document.getElementById('btn-recenter-map');
-        if (recenterBtn) {
-            recenterBtn.addEventListener('click', () => {
-                recenterMap();
-            });
-        }
+    function renderGoogleRouteView(originQuery, destinationQuery, destinationTitle) {
+        if (!mapContainer) return;
+
+        const cleanOrigin = encodeURIComponent(`${originQuery}, Villavicencio, Meta, Colombia`);
+        const cleanDest = encodeURIComponent(`${destinationQuery}, Villavicencio, Meta, Colombia`);
+        
+        // Petición directa a Google Maps con trazado de ruta de conducción (saddr -> daddr)
+        const googleRouteEmbedUrl = `https://maps.google.com/maps?saddr=${cleanOrigin}&daddr=${cleanDest}&t=&z=14&ie=UTF8&output=embed`;
+
+        mapContainer.innerHTML = `
+            <div style="position: relative; width: 100%; height: 100%; min-height: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+                <iframe 
+                    id="google-maps-iframe"
+                    title="Google Maps Ruta de Domicilio"
+                    width="100%" 
+                    height="100%" 
+                    style="border:0; min-height: 400px;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="${googleRouteEmbedUrl}">
+                </iframe>
+                <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; font-family: sans-serif; font-size: 12px; font-weight: 700; color: #1e293b; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-route" style="color: #2563eb; font-size: 15px;"></i>
+                    <span>Ruta Google Maps: Origen → ${escapeHtml(destinationTitle)}</span>
+                </div>
+            </div>
+        `;
     }
 
     function setOrigin(lat, lng, name, address) {
         currentOriginCoords = [parseFloat(lat) || 4.1488, parseFloat(lng) || -73.6339];
-        currentOriginTitle = name || "Sede Principal Rapidin - Centro";
-        currentOriginAddress = address || "Calle 38 #31-42, Centro";
+        currentOriginTitle = name || "Sede Principal";
+        currentOriginAddress = address || "Centro, Villavicencio";
 
-        if (!map) initMap();
-
-        if (originMarker) {
-            originMarker.setLatLng(currentOriginCoords);
-            originMarker.setPopupContent(`
-                <div style="font-family: sans-serif; font-size: 13px;">
-                    <strong style="color: #0f4c81;"><i class="fa-solid fa-building"></i> ${currentOriginTitle}</strong><br>
-                    <span>${currentOriginAddress}</span><br>
-                    <small style="color: #64748b;">Punto de Despacho</small>
-                </div>
-            `);
-        }
-
-        // If there's an active route, redraw it
-        if (destinationMarker) {
-            const destCoords = destinationMarker.getLatLng();
-            if (routeLine) {
-                routeLine.setLatLngs([currentOriginCoords, destCoords]);
-            }
-            recenterMap();
+        if (activeDestinationQuery) {
+            renderGoogleRouteView(currentOriginAddress, activeDestinationQuery.destQuery, activeDestinationQuery.title);
         } else {
-            map.setView(currentOriginCoords, 14);
+            renderGoogleSingleLocation(currentOriginAddress);
         }
     }
 
     function updateRoute(destinationData) {
-        if (!map) initMap();
-        if (!destinationData || !destinationData.latitud || !destinationData.longitud) return;
+        if (!destinationData) return;
 
-        const destCoords = [destinationData.latitud, destinationData.longitud];
+        const barrio = destinationData.barrio || destinationData.barrio_destino || "Villavicencio";
+        const direccion = destinationData.direccion_exacta || "";
 
-        // Remover marcador de destino previo si existe
-        if (destinationMarker) {
-            map.removeLayer(destinationMarker);
-        }
+        const destQuery = direccion ? `${direccion}, ${barrio}` : `Barrio ${barrio}`;
+        const title = direccion ? `${barrio} (${direccion})` : barrio;
 
-        // Remover línea de ruta previa si existe
-        if (routeLine) {
-            map.removeLayer(routeLine);
-        }
+        activeDestinationQuery = { destQuery: destQuery, title: title };
 
-        // Icono Marcador Destino Barrio
-        const destIcon = L.divIcon({
-            className: 'custom-map-pin dest-pin',
-            html: `<div style="background-color: #2563eb; color: white; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 3px solid white; box-shadow: 0 4px 12px rgba(37,99,235,0.4);"><i class="fa-solid fa-location-dot"></i></div>`,
-            iconSize: [38, 38],
-            iconAnchor: [19, 19]
-        });
-
-        const isExactAddr = !!destinationData.direccion_exacta;
-        const addrHtml = isExactAddr ? `<div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; color: #1e293b; font-weight: 700;"><i class="fa-solid fa-location-dot" style="color: #2563eb;"></i> ${destinationData.direccion_exacta}</div>` : '';
-
-        destinationMarker = L.marker(destCoords, { icon: destIcon }).addTo(map);
-        destinationMarker.bindPopup(`
-            <div style="font-family: sans-serif; font-size: 13px;">
-                ${addrHtml}
-                <strong style="color: #1e40af;"><i class="fa-solid fa-flag-checkered"></i> Barrio: ${destinationData.barrio}</strong><br>
-                <span>Zona: ${destinationData.zona}</span><br>
-                <strong style="color: #0f4c81;">Tarifa: $${destinationData.tarifa_total.toLocaleString('es-CO')} COP</strong>
-            </div>
-        `).openPopup();
-
-        // Trazar línea de ruta (Estilo Google Maps Azul)
-        routeLine = L.polyline([currentOriginCoords, destCoords], {
-            color: '#2563eb',
-            weight: 5,
-            opacity: 0.85,
-            dashArray: '8, 8',
-            lineJoin: 'round'
-        }).addTo(map);
-
-        // Ajustar vista del mapa para cubrir origen y destino
-        const bounds = L.latLngBounds([currentOriginCoords, destCoords]);
-        map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
-
-        // Actualizar overlay informativo en el mapa
-        const overlay = document.getElementById('map-overlay-info');
-        const overlayText = document.getElementById('map-overlay-text');
-        if (overlay && overlayText) {
-            overlayText.innerHTML = isExactAddr 
-                ? `Ruta a <strong>${destinationData.direccion_exacta}</strong> (${destinationData.barrio})`
-                : `Ruta a <strong>${destinationData.barrio}</strong> (${destinationData.distancia_km} km approx)`;
-            overlay.style.display = 'flex';
-        }
+        renderGoogleRouteView(currentOriginAddress, destQuery, title);
     }
 
     function recenterMap() {
-        if (!map) return;
-        map.invalidateSize();
-        if (destinationMarker) {
-            const bounds = L.latLngBounds([currentOriginCoords, destinationMarker.getLatLng()]);
-            map.fitBounds(bounds, { padding: [60, 60] });
+        if (activeDestinationQuery) {
+            renderGoogleRouteView(currentOriginAddress, activeDestinationQuery.destQuery, activeDestinationQuery.title);
         } else {
-            map.setView(currentOriginCoords, 14);
+            renderGoogleSingleLocation(currentOriginAddress);
         }
     }
 
-    // Auto-invalidar tamaño de mapa al cambiar dimensión de pantalla/orientación móvil
-    window.addEventListener('resize', () => {
-        if (map) {
-            map.invalidateSize();
-        }
-    });
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
+    }
 
     return {
         init: initMap,
         setOrigin: setOrigin,
         updateRoute: updateRoute,
-        recenter: recenterMap,
-        invalidateSize: function() {
-            if (map) map.invalidateSize();
-        }
+        recenter: recenterMap
     };
 })();
-

@@ -3,12 +3,13 @@ import http.server
 import socketserver
 import json
 import csv
+import re
 import urllib.parse
 import urllib.request
 import os
 import sys
 import math
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
 import shutil
@@ -218,35 +219,47 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 csv_path = os.path.join(BASE_DIR, 'database', c["archivo_tarifario"])
 
             barrios = load_spreadsheet_data(csv_path)
-            b_name = query.get('barrio', [''])[0].strip()
+            raw_query = (query.get('barrio', [''])[0] or query.get('direccion', [''])[0] or query.get('q', [''])[0]).strip()
             b_id = query.get('id', [''])[0].strip()
-            direccion = query.get('direccion', [''])[0].strip()
+            explicit_dir = query.get('direccion', [''])[0].strip()
 
             target = None
-            if b_id:
-                target = next((b for b in barrios if str(b['id']) == b_id), None)
-            elif b_name:
-                target = next((b for b in barrios if b['barrio'].lower() == b_name.lower()), None)
-                if not target:
-                    target = next((b for b in barrios if b_name.lower() in b['barrio'].lower() or b['barrio'].lower() in b_name.lower()), None)
-
             geo_res = None
             is_geocoded_proximity = False
 
-            # Si no hay barrio coincidente directo pero se envió dirección
-            if not target and direccion:
-                dir_lower = direccion.lower()
-                # 1. Intentar coincidencia de texto del nombre del barrio en la dirección
-                barrios_sorted = sorted(barrios, key=lambda x: len(x['barrio']), reverse=True)
-                for b in barrios_sorted:
-                    if b['barrio'].lower() in dir_lower:
-                        target = b
-                        break
+            if b_id:
+                target = next((b for b in barrios if str(b['id']) == b_id), None)
 
-                # 2. Si sigue sin coincidencia de texto, geocodificar la dirección y calcular el barrio más cercano por Haversine
-                if not target:
-                    geo_res = geocode_address(direccion)
+            # Detectar si el texto ingresado tiene estructura de dirección exacta (contiene números o prefijos de vía)
+            is_address_like = bool(explicit_dir or re.search(r'\d+', raw_query) or any(k in raw_query.lower() for k in ['cl', 'calle', 'cra', 'carrera', 'diag', 'diagonal', 'tv', 'transversal', 'av', 'avenida', '#', 'apto', 'casa']))
+
+            direccion_str = explicit_dir if explicit_dir else (raw_query if is_address_like else "")
+
+            # 1. Si no hay ID, intentar encontrar coincidencia de barrio en la consulta
+            if not target and raw_query:
+                # Coincidencia exacta de barrio
+                target = next((b for b in barrios if b['barrio'].lower() == raw_query.lower()), None)
+                
+                # Coincidencia parcial si no es exacta
+                if not target and not is_address_like:
+                    target = next((b for b in barrios if raw_query.lower() in b['barrio'].lower() or b['barrio'].lower() in raw_query.lower()), None)
+
+                # Si la consulta incluye dirección, buscar si incluye el nombre de algún barrio de la lista
+                if not target or is_address_like:
+                    raw_lower = raw_query.lower()
+                    barrios_sorted = sorted(barrios, key=lambda x: len(x['barrio']), reverse=True)
+                    for b in barrios_sorted:
+                        if b['barrio'].lower() in raw_lower:
+                            target = b
+                            break
+
+            # 2. Si se detectó una dirección o sigue sin target, geocodificar con Nominatim
+            if is_address_like or not target:
+                query_to_geo = direccion_str or raw_query
+                if query_to_geo:
+                    geo_res = geocode_address(query_to_geo)
                     if geo_res:
+                        # Encontrar el barrio más cercano espacialmente a las coordenadas de la dirección
                         closest_barrio = None
                         min_dist = float('inf')
                         for b in barrios:
@@ -254,43 +267,63 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                             if dist < min_dist:
                                 min_dist = dist
                                 closest_barrio = b
+                        
                         if closest_barrio:
                             target = closest_barrio
                             is_geocoded_proximity = True
 
-            # Si se encontró un barrio explícito y también hay dirección, intentar geocodificar la dirección para ubicarla en el mapa
-            if target and direccion and not geo_res:
-                geo_res = geocode_address(direccion)
-
             if not target:
-                err_msg = f"No se pudo ubicar ni calcular tarifa para la dirección o barrio '{b_name or direccion}' en {cliente_nombre}."
+                err_msg = f"No se pudo ubicar ni calcular tarifa para '{raw_query}' en {cliente_nombre}."
                 self.send_json_response({"status": "error", "message": err_msg}, status=404)
                 return
 
             final_lat = geo_res['lat'] if geo_res else target['latitud']
             final_lon = geo_res['lon'] if geo_res else target['longitud']
+            origen_payload = {
+                "nombre": f"Sede Principal {c['nombre']}" if c else ORIGEN_SEDE['nombre'],
+                "direccion": c.get("direccion_origen", ORIGEN_SEDE['direccion']) if c else ORIGEN_SEDE['direccion'],
+                "latitud": c.get("latitud_origen", ORIGEN_SEDE['latitud']) if c else ORIGEN_SEDE['latitud'],
+                "longitud": c.get("longitud_origen", ORIGEN_SEDE['longitud']) if c else ORIGEN_SEDE['longitud']
+            }
 
-            if direccion:
-                dest_query = urllib.parse.quote(f"{direccion}, Villavicencio, Meta, Colombia")
-                google_maps_url = (
-                    f"https://www.google.com/maps/dir/?api=1"
-                    f"&origin={ORIGEN_SEDE['latitud']},{ORIGEN_SEDE['longitud']}"
-                    f"&destination={dest_query}"
-                    f"&travelmode=driving"
-                )
+            # Construir la búsqueda directa para Google Maps utilizando el nombre del barrio/lugar de la base de datos
+            dest_text = direccion_str if direccion_str else f"{target['barrio']}, Villavicencio, Meta, Colombia"
+            dest_query = urllib.parse.quote(dest_text)
+
+            orig_addr = origen_payload.get('direccion', '')
+            if orig_addr:
+                orig_query = urllib.parse.quote(f"{orig_addr}, Villavicencio, Meta, Colombia")
             else:
-                google_maps_url = (
-                    f"https://www.google.com/maps/dir/?api=1"
-                    f"&origin={ORIGEN_SEDE['latitud']},{ORIGEN_SEDE['longitud']}"
-                    f"&destination={final_lat},{final_lon}"
-                    f"&travelmode=driving"
-                )
+                orig_query = f"{origen_payload['latitud']},{origen_payload['longitud']}"
+
+            google_maps_url = (
+                f"https://www.google.com/maps/dir/?api=1"
+                f"&origin={orig_query}"
+                f"&destination={dest_query}"
+                f"&travelmode=driving"
+            )
+
+            # 3. Cálculo de Recargos Especiales (Nocturno y Lluvia)
+            # Recargo Nocturno: 10:00 PM a 6:00 AM (Zona Horaria Colombia UTC-5)
+            now_utc = datetime.now(timezone.utc)
+            bogota_dt = now_utc - timedelta(hours=5)
+            bogota_hour = bogota_dt.hour
+            es_nocturno = bool(bogota_hour >= 22 or bogota_hour < 6)
+            recargo_nocturno = 1000 if es_nocturno else 0
+
+            # Recargo por Lluvia: Indicado por el cliente
+            lluvia_param = query.get('lluvia', ['0'])[0].lower() or query.get('es_lluvia', ['0'])[0].lower()
+            es_lluvia = bool(lluvia_param in ['1', 'true', 'si', 'yes', 'on'])
+            recargo_lluvia = 1000 if es_lluvia else 0
+
+            tarifa_barrio = target["tarifa_total"]
+            tarifa_final = tarifa_barrio + recargo_nocturno + recargo_lluvia
 
             response_payload = {
                 "status": "success",
                 "cotizacion": {
                     "cliente": cliente_nombre,
-                    "origen": ORIGEN_SEDE,
+                    "origen": origen_payload,
                     "destino": {
                         "id": target["id"],
                         "barrio": target["barrio"],
@@ -300,12 +333,17 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                         "barrio_latitud": target["latitud"],
                         "barrio_longitud": target["longitud"]
                     },
-                    "direccion_exacta": direccion if direccion else None,
+                    "direccion_exacta": direccion_str if direccion_str else None,
                     "barrio_asignado_cercano": target["barrio"] if is_geocoded_proximity else None,
                     "distancia_km": target["distancia_km"],
                     "tarifa_base": target["tarifa_base"],
                     "recargo_distancia": target["recargo_distancia"],
-                    "tarifa_total": target["tarifa_total"],
+                    "tarifa_barrio": tarifa_barrio,
+                    "es_nocturno": es_nocturno,
+                    "recargo_nocturno": recargo_nocturno,
+                    "es_lluvia": es_lluvia,
+                    "recargo_lluvia": recargo_lluvia,
+                    "tarifa_total": tarifa_final,
                     "tiempo_entrega_min": target["tiempo_entrega_min"],
                     "moneda": "COP",
                     "google_maps_url": google_maps_url
@@ -534,8 +572,13 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                     elif not new_code.startswith("pbkdf2:sha256:"):
                         c["codigo_acceso"] = hash_password(new_code)
 
+                    # Sincronizar dirección y coordenadas
+                    addr = c.get("direccion_origen") or c.get("direccion") or "Calle 38 #31-42, Centro - Villavicencio"
+                    c["direccion_origen"] = addr
+                    c["direccion"] = addr
+
                     # Ensure latitud and longitud are floats
-                    for coord_field, default_val in [("latitud", 4.1488), ("longitud", -73.6339)]:
+                    for coord_field, default_val in [("latitud_origen", 4.1488), ("longitud_origen", -73.6339), ("latitud", 4.1488), ("longitud", -73.6339)]:
                         val = c.get(coord_field)
                         try:
                             c[coord_field] = float(val) if val is not None else default_val
@@ -574,6 +617,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json_response({"status": "error", "message": f"Negocio '{cliente_nombre}' no encontrado."}, status=404)
                 return
 
+            c["direccion_origen"] = nueva_direccion
             c["direccion"] = nueva_direccion
             save_clientes(clientes)
 
@@ -601,7 +645,9 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             if "categoria" in payload:
                 c["categoria"] = str(payload["categoria"])[:80]
             if "direccion" in payload and str(payload["direccion"]).strip():
-                c["direccion"] = str(payload["direccion"]).strip()
+                addr_str = str(payload["direccion"]).strip()
+                c["direccion_origen"] = addr_str
+                c["direccion"] = addr_str
             if "foto_perfil" in payload:
                 foto = payload["foto_perfil"]
                 if isinstance(foto, str) and (foto.startswith("data:image") or foto == ""):

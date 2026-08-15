@@ -142,22 +142,70 @@
                             </div>
                         </div>
 
-                        <!-- Barrio / Dirección Autocomplete Input -->
+                        <!-- Barrio Search Input -->
                         <div class="search-box-wrapper">
                             <div class="search-label-row">
-                                <label for="barrio-input" class="input-label"><i class="fa-solid fa-magnifying-glass-location"></i> Escribe Barrio, Localidad o Dirección Exacta</label>
-                                <span class="badge-search-mode"><i class="fa-solid fa-bolt"></i> Búsqueda Inteligente</span>
+                                <label for="barrio-input" class="input-label"><i class="fa-solid fa-city text-blue"></i> Escribe el Barrio o Sector de Destino</label>
+                                <span class="badge-search-mode"><i class="fa-solid fa-list-check"></i> Consulta por Barrio</span>
                             </div>
                             <div class="search-input-container">
                                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                                 <input type="text" id="barrio-input"
-                                    placeholder="Ej: Barzal, Calle 15 #38-20 Barzal, Amarilo, Cra 40 #12 Catama..." autocomplete="off">
+                                    placeholder="Ej: Barzal, Amarilo, El Buque, La Grama, Catama, Porfía..." autocomplete="off">
                                 <button id="clear-search-btn" class="clear-btn" style="display: none;">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                             <!-- Autocomplete Dropdown list -->
                             <div id="autocomplete-list" class="autocomplete-dropdown"></div>
+                        </div>
+
+                        <!-- Mandatory Rain Selector Options (SI / NO) -->
+                        <div class="rain-mandatory-box" style="margin-top: 14px; background: #ffffff; padding: 14px 16px; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="background: #eff6ff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-cloud-showers-heavy" style="color: #2563eb; font-size: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="font-size: 14px; color: #0f172a; display: block;">¿Está lloviendo en este momento? <span style="color: #ef4444;">*</span></strong>
+                                        <span style="font-size: 12px; color: #64748b;">Selecciona SI o NO (Recargo obligatorio de +$1.000 COP si está lloviendo)</span>
+                                    </div>
+                                </div>
+
+                                <div class="rain-radio-options" style="display: flex; align-items: center; gap: 10px;">
+                                    <label id="lbl-rain-si" class="rain-btn-label" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 2px solid #cbd5e1; background: #f8fafc; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+                                        <input type="radio" name="rain-option" value="si" style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer;">
+                                        <span>🌧️ SÍ (+$1.000)</span>
+                                    </label>
+                                    <label id="lbl-rain-no" class="rain-btn-label active" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 2px solid #2563eb; background: #eff6ff; color: #1e40af; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;">
+                                        <input type="radio" name="rain-option" value="no" checked style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer;">
+                                        <span>☀️ NO (+$0)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Night Surcharge Card (Hora Colombia & Estado) -->
+                        <div id="night-surcharge-card" style="margin-top: 10px; background: #ffffff; padding: 14px 16px; border-radius: 12px; border: 2px solid #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div id="night-icon-bg" style="background: #e0e7ff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i id="night-icon-symbol" class="fa-solid fa-moon" style="color: #4f46e5; font-size: 18px;"></i>
+                                    </div>
+                                    <div>
+                                        <strong style="font-size: 14px; color: #0f172a; display: block;">Recargo Nocturno (10:00 PM a 6:00 AM)</strong>
+                                        <span style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 6px;">
+                                            <i class="fa-regular fa-clock" style="color: #4f46e5;"></i>
+                                            <span>Hora en Colombia: <strong id="clock-colombia-time" style="color: #1e293b; font-family: monospace; font-size: 13px;">12:00 PM</strong></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div id="night-status-badge" style="padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; transition: all 0.3s;">
+                                    <span id="night-badge-text">☀️ Horario Diurno (+$0 COP)</span>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Popular Barrio Chips -->
@@ -182,15 +230,6 @@
                                 </div>
                             </div>
 
-                            <!-- Display exact address if specified -->
-                            <div id="res-direccion-box" class="exact-address-box" style="display: none;">
-                                <i class="fa-solid fa-location-dot exact-address-icon"></i>
-                                <div>
-                                    <span class="exact-address-label">Dirección Exacta Cotizada</span>
-                                    <div id="res-direccion-exacta" class="exact-address-val"></div>
-                                </div>
-                            </div>
-
                             <div class="metrics-grid">
                                 <div class="metric-item">
                                     <div class="metric-icon blue"><i class="fa-solid fa-route"></i></div>
@@ -210,18 +249,22 @@
                             </div>
 
                             <div class="price-breakdown">
-                                <span class="breakdown-title">Desglose de la tarifa:</span>
+                                <span class="breakdown-title"><i class="fa-solid fa-receipt text-blue"></i> Desglose de la tarifa:</span>
                                 <div class="breakdown-row">
-                                    <span>Tarifa Base Ciudad</span>
-                                    <span id="res-tarifa-base">$6.000 COP</span>
+                                    <span><i class="fa-solid fa-shop"></i> Tarifa Base Barrio</span>
+                                    <span id="res-tarifa-barrio">$0 COP</span>
                                 </div>
-                                <div class="breakdown-row">
-                                    <span>Recargo por Zonas / Distancia</span>
-                                    <span id="res-recargo">$0 COP</span>
+                                <div class="breakdown-row" id="row-recargo-nocturno">
+                                    <span><i class="fa-solid fa-moon text-indigo"></i> Recargo Nocturno (10 PM - 6 AM)</span>
+                                    <span id="res-recargo-nocturno">$0 COP</span>
+                                </div>
+                                <div class="breakdown-row" id="row-recargo-lluvia">
+                                    <span><i class="fa-solid fa-cloud-showers-heavy text-blue"></i> Recargo por Lluvia</span>
+                                    <span id="res-recargo-lluvia">$0 COP</span>
                                 </div>
                                 <div class="breakdown-row total">
-                                    <span>Total Domicilio Negocio</span>
-                                    <span id="res-total-breakdown">$6.000 COP</span>
+                                    <span><i class="fa-solid fa-calculator"></i> Total Domicilio Final</span>
+                                    <span id="res-total-breakdown">$0 COP</span>
                                 </div>
                             </div>
 

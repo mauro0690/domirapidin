@@ -20,6 +20,10 @@ window.RapidinApp = (function () {
         initSearchAndAutocomplete();
         initOrderModal();
 
+        // Iniciar reloj en vivo de Colombia y comprobación de recargo nocturno cada segundo
+        checkColombiaNightSurcharge();
+        setInterval(checkColombiaNightSurcharge, 1000);
+
         // Initialize Map
         window.RapidinMap.init();
 
@@ -236,11 +240,12 @@ window.RapidinApp = (function () {
                 activePricingClient = clientsData[0].nombre;
             }
             const activeClientObj = clientsData.find(c => c.nombre === activePricingClient);
+            const clientAddrStr = activeClientObj ? (activeClientObj.direccion_origen || activeClientObj.direccion || '') : "Calle 38 #31-42, Centro - Villavicencio";
             if (originAddr) {
-                originAddr.textContent = activeClientObj ? (activeClientObj.direccion || '') : "Calle 38 #31-42, Centro - Villavicencio";
+                originAddr.textContent = clientAddrStr;
             }
             if (activeClientObj) {
-                window.RapidinMap.setOrigin(activeClientObj.latitud || 4.1488, activeClientObj.longitud || -73.6339, activeClientObj.nombre, activeClientObj.direccion);
+                window.RapidinMap.setOrigin(activeClientObj.latitud_origen || activeClientObj.latitud || 4.1488, activeClientObj.longitud_origen || activeClientObj.longitud || -73.6339, activeClientObj.nombre, clientAddrStr);
             } else {
                 window.RapidinMap.setOrigin(4.1488, -73.6339, "Sede Principal Centro", "Calle 38 #31-42, Centro - Villavicencio");
             }
@@ -249,10 +254,15 @@ window.RapidinApp = (function () {
                 originName.style.display = 'inline';
                 originName.textContent = business.nombre;
             }
-            if (selectOrigin) selectOrigin.style.display = 'none';
-            if (originAddr) originAddr.textContent = business.direccion || "Calle 38 #31-42, Centro - Villavicencio";
+            const bizAddrStr = business.direccion_origen || business.direccion || "Calle 38 #31-42, Centro - Villavicencio";
+            if (originAddr) originAddr.textContent = bizAddrStr;
             activePricingClient = business.nombre;
-            window.RapidinMap.setOrigin(business.latitud || 4.1488, business.longitud || -73.6339, business.nombre, business.direccion);
+            window.RapidinMap.setOrigin(
+                business.latitud_origen || business.latitud || 4.1488,
+                business.longitud_origen || business.longitud || -73.6339,
+                business.nombre,
+                bizAddrStr
+            );
         }
 
         loadBarrios();
@@ -398,11 +408,12 @@ window.RapidinApp = (function () {
 
         const client = clientsData.find(c => c.nombre === clientName);
         const originAddr = document.getElementById('origin-business-address');
+        const clientAddrStr = client ? (client.direccion_origen || client.direccion || '') : "Calle 38 #31-42, Centro - Villavicencio";
         if (originAddr) {
-            originAddr.textContent = client ? (client.direccion || '') : "Calle 38 #31-42, Centro - Villavicencio";
+            originAddr.textContent = clientAddrStr;
         }
         if (client) {
-            window.RapidinMap.setOrigin(client.latitud || 4.1488, client.longitud || -73.6339, client.nombre, client.direccion);
+            window.RapidinMap.setOrigin(client.latitud_origen || client.latitud || 4.1488, client.longitud_origen || client.longitud || -73.6339, client.nombre, clientAddrStr);
         } else {
             window.RapidinMap.setOrigin(4.1488, -73.6339, "Sede Principal Centro", "Calle 38 #31-42, Centro - Villavicencio");
         }
@@ -417,8 +428,12 @@ window.RapidinApp = (function () {
                 clientsData = data.data;
 
                 if (activeBusiness && activeBusiness.id !== 'ADMIN') {
-                    const exists = clientsData.some(c => c.nombre.toLowerCase() === activeBusiness.nombre.toLowerCase());
-                    if (!exists) {
+                    const freshClient = clientsData.find(c => c.nombre.toLowerCase() === activeBusiness.nombre.toLowerCase() || c.id === activeBusiness.id);
+                    if (freshClient) {
+                        activeBusiness = { ...activeBusiness, ...freshClient };
+                        localStorage.setItem('rapidin_business', JSON.stringify(activeBusiness));
+                        applyBusinessSession(activeBusiness);
+                    } else {
                         activeBusiness = null;
                         localStorage.removeItem('rapidin_business');
                         applyBusinessSession(null);
@@ -553,9 +568,9 @@ window.RapidinApp = (function () {
                         </button>
                     </div>
                 </td>
-                <td><input type="text" data-field="direccion" value="${escapeHtml(c.direccion || 'Calle 38 #31-42, Centro - Villavicencio')}"></td>
-                <td><input type="number" step="0.0001" data-field="latitud" value="${c.latitud !== undefined ? c.latitud : 4.1488}" style="width: 90px;"></td>
-                <td><input type="number" step="0.0001" data-field="longitud" value="${c.longitud !== undefined ? c.longitud : -73.6339}" style="width: 90px;"></td>
+                <td><input type="text" data-field="direccion_origen" value="${escapeHtml(c.direccion_origen || c.direccion || '')}"></td>
+                <td><input type="number" step="0.0001" data-field="latitud_origen" value="${c.latitud_origen !== undefined ? c.latitud_origen : (c.latitud !== undefined ? c.latitud : 4.1488)}" style="width: 90px;"></td>
+                <td><input type="number" step="0.0001" data-field="longitud_origen" value="${c.longitud_origen !== undefined ? c.longitud_origen : (c.longitud !== undefined ? c.longitud : -73.6339)}" style="width: 90px;"></td>
                 <td><input type="text" data-field="tipo" value="${escapeHtml(c.tipo || 'Comercial')}"></td>
                 <td style="text-align:center;">
                     <button class="btn-del-row" data-index="${index}" title="Eliminar Negocio">
@@ -697,6 +712,55 @@ window.RapidinApp = (function () {
         }
     }
 
+    let currentSelectedBarrio = null;
+
+    /* Check Colombia Timezone & Update Live Clock / Night Surcharge Card (10 PM to 6 AM) */
+    function checkColombiaNightSurcharge() {
+        const now = new Date();
+        let hour = now.getHours();
+        let timeStr = "";
+
+        try {
+            timeStr = now.toLocaleTimeString('es-CO', { timeZone: 'America/Bogota', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const colHourStr = now.toLocaleTimeString('en-US', { timeZone: 'America/Bogota', hour12: false, hour: '2-digit' });
+            hour = parseInt(colHourStr, 10);
+        } catch (e) {
+            timeStr = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+
+        const esNocturno = hour >= 22 || hour < 6;
+
+        // Update Live Colombia Clock
+        const clockEl = document.getElementById('clock-colombia-time');
+        if (clockEl) clockEl.textContent = timeStr;
+
+        // Update Night Surcharge Badge & Card UI
+        const badge = document.getElementById('night-status-badge');
+        const badgeText = document.getElementById('night-badge-text');
+        const iconBg = document.getElementById('night-icon-bg');
+        const iconSymbol = document.getElementById('night-icon-symbol');
+
+        if (badge && badgeText) {
+            if (esNocturno) {
+                badge.style.background = '#e0e7ff';
+                badge.style.color = '#3730a3';
+                badge.style.border = '1px solid #c7d2fe';
+                badgeText.innerHTML = '<i class="fa-solid fa-moon"></i> 🌙 ACTIVO (+$1.000 COP)';
+                if (iconBg) iconBg.style.background = '#e0e7ff';
+                if (iconSymbol) { iconSymbol.className = 'fa-solid fa-moon'; iconSymbol.style.color = '#4f46e5'; }
+            } else {
+                badge.style.background = '#fef3c7';
+                badge.style.color = '#92400e';
+                badge.style.border = '1px solid #fde68a';
+                badgeText.innerHTML = '<i class="fa-solid fa-sun"></i> ☀️ Horario Diurno (+$0 COP)';
+                if (iconBg) iconBg.style.background = '#fef3c7';
+                if (iconSymbol) { iconSymbol.className = 'fa-solid fa-sun'; iconSymbol.style.color = '#d97706'; }
+            }
+        }
+
+        return esNocturno;
+    }
+
     /* Popular Barrio Chips */
     function renderQuickChips(data) {
         const container = document.getElementById('quick-chips-container');
@@ -719,7 +783,7 @@ window.RapidinApp = (function () {
         });
     }
 
-    /* Search Input & Live Autocomplete (Smart Address & Barrio Search) */
+    /* Search Input & Live Autocomplete (Exclusivo por Barrio) */
     function initSearchAndAutocomplete() {
         const input = document.getElementById('barrio-input');
         const clearBtn = document.getElementById('clear-search-btn');
@@ -727,12 +791,50 @@ window.RapidinApp = (function () {
 
         if (!input || !dropdown) return;
 
-        // Función para extraer barrio presente en texto de dirección
-        function detectBarrioFromAddress(text) {
-            const valLower = text.toLowerCase();
-            const barriosSorted = [...barriosData].sort((a, b) => b.barrio.length - a.barrio.length);
-            return barriosSorted.find(b => valLower.includes(b.barrio.toLowerCase()));
+        checkColombiaNightSurcharge();
+
+        function recalculateSurchargesLive() {
+            const selectedRainOpt = document.querySelector('input[name="rain-option"]:checked')?.value || 'no';
+            const isRainChecked = selectedRainOpt === 'si';
+            const esNocturno = checkColombiaNightSurcharge();
+
+            const lblSi = document.getElementById('lbl-rain-si');
+            const lblNo = document.getElementById('lbl-rain-no');
+            if (lblSi && lblNo) {
+                if (isRainChecked) {
+                    lblSi.style.borderColor = '#2563eb';
+                    lblSi.style.background = '#eff6ff';
+                    lblSi.style.color = '#1e40af';
+                    lblNo.style.borderColor = '#cbd5e1';
+                    lblNo.style.background = '#f8fafc';
+                    lblNo.style.color = '#1e293b';
+                } else {
+                    lblNo.style.borderColor = '#2563eb';
+                    lblNo.style.background = '#eff6ff';
+                    lblNo.style.color = '#1e40af';
+                    lblSi.style.borderColor = '#cbd5e1';
+                    lblSi.style.background = '#f8fafc';
+                    lblSi.style.color = '#1e293b';
+                }
+            }
+
+            if (selectedCotizacion) {
+                const baseBarrio = selectedCotizacion.tarifa_barrio || selectedCotizacion.destino?.tarifa_total || 6000;
+                const recargoLluvia = isRainChecked ? 1000 : 0;
+                const recargoNocturno = esNocturno ? 1000 : 0;
+                const totalCalculado = baseBarrio + recargoNocturno + recargoLluvia;
+
+                selectedCotizacion.recargo_lluvia = recargoLluvia;
+                selectedCotizacion.recargo_nocturno = recargoNocturno;
+                selectedCotizacion.tarifa_total = totalCalculado;
+
+                renderResultCard(selectedCotizacion);
+            }
         }
+
+        document.querySelectorAll('input[name="rain-option"]').forEach(radio => {
+            radio.addEventListener('change', recalculateSurchargesLive);
+        });
 
         input.addEventListener('input', (e) => {
             const rawVal = e.target.value;
@@ -744,16 +846,12 @@ window.RapidinApp = (function () {
                 return;
             }
 
-            // Comprobar si el texto ingresado parece una dirección (contiene números, #, o prefijos de vía)
-            const isAddressLike = /[0-9#]|\b(calle|cra|carrera|cll|av|avenida|diagonal|transversal|trv|dg|tv|apto|casa|manzana|mz)\b/i.test(rawVal);
-            const detectedBarrio = detectBarrioFromAddress(rawVal);
-
-            // Filtrar coincidencias directas de barrio o zona
+            // Filtrar exclusivamente por coincidencias de nombre de barrio o zona
             const matches = barriosData.filter(b =>
                 b.barrio.toLowerCase().includes(val) || b.zona.toLowerCase().includes(val)
             );
 
-            renderAutocompleteDropdown(matches, dropdown, input, rawVal, isAddressLike, detectedBarrio);
+            renderAutocompleteDropdown(matches, dropdown, input);
         });
 
         // Soporte para presionar ENTER en el input de búsqueda
@@ -764,17 +862,16 @@ window.RapidinApp = (function () {
                 if (!rawVal) return;
 
                 dropdown.classList.remove('show');
-                const detectedBarrio = detectBarrioFromAddress(rawVal);
-                const isAddressLike = /[0-9#]|\b(calle|cra|carrera|cll|av|avenida|diagonal|transversal|trv|dg|tv)\b/i.test(rawVal);
 
-                if (isAddressLike) {
-                    const bName = detectedBarrio ? detectedBarrio.barrio : '';
-                    seleccionarBarrio(bName, rawVal);
-                } else if (detectedBarrio) {
-                    seleccionarBarrio(detectedBarrio.barrio, '');
+                // Encontrar el primer barrio coincidente en la base de datos
+                const match = barriosData.find(b => b.barrio.toLowerCase() === rawVal.toLowerCase()) ||
+                    barriosData.find(b => b.barrio.toLowerCase().includes(rawVal.toLowerCase()));
+
+                if (match) {
+                    input.value = match.barrio;
+                    seleccionarBarrio(match.barrio);
                 } else {
-                    // Si ingresó texto general, intentar cotizar como barrio
-                    seleccionarBarrio(rawVal, '');
+                    showToast("⚠️ Barrio no encontrado en la base de datos de " + (activePricingClient || "este negocio") + ". Elige un barrio de la lista desplegable.");
                 }
             }
         });
@@ -783,6 +880,7 @@ window.RapidinApp = (function () {
             input.value = '';
             clearBtn.style.display = 'none';
             dropdown.classList.remove('show');
+            currentSelectedBarrio = null;
             resetResultCard();
         });
 
@@ -793,53 +891,29 @@ window.RapidinApp = (function () {
         });
     }
 
-    function renderAutocompleteDropdown(matches, dropdown, input, rawSearchVal, isAddressLike, detectedBarrio) {
+    function renderAutocompleteDropdown(matches, dropdown, input) {
         dropdown.innerHTML = '';
 
-        // Si el usuario ingresó una dirección exacta, mostrar una opción destacada de Dirección Cotizada
-        if (isAddressLike) {
-            const addrDiv = document.createElement('div');
-            addrDiv.className = 'suggestion-item address-item';
-            const barrioTxt = detectedBarrio ? `Barrio detectado: <strong>${escapeHtml(detectedBarrio.barrio)}</strong>` : `Buscar barrio en dirección...`;
-            addrDiv.innerHTML = `
-                <div>
-                    <div class="item-title"><i class="fa-solid fa-location-dot text-blue"></i> Cotizar Dirección: <strong>${escapeHtml(rawSearchVal)}</strong></div>
-                    <div class="item-sub">${barrioTxt}</div>
-                </div>
-                <div class="item-price"><i class="fa-solid fa-arrow-right"></i></div>
-            `;
-            addrDiv.addEventListener('click', () => {
-                dropdown.classList.remove('show');
-                const bName = detectedBarrio ? detectedBarrio.barrio : '';
-                seleccionarBarrio(bName, rawSearchVal);
-            });
-            dropdown.appendChild(addrDiv);
-        }
-
-        if (matches.length === 0 && !isAddressLike) {
-            dropdown.innerHTML = `<div class="suggestion-item"><span class="item-sub">No se encontró el barrio ni la dirección. Revisa la ortografía o ingresa una dirección completa.</span></div>`;
+        if (matches.length === 0) {
+            dropdown.innerHTML = `<div class="suggestion-item"><span class="item-sub">No se encontró ningún barrio con ese nombre en la base de datos. Revisa la ortografía.</span></div>`;
             dropdown.classList.add('show');
             return;
         }
 
-        matches.forEach(item => {
+        matches.slice(0, 15).forEach(item => {
             const div = document.createElement('div');
             div.className = 'suggestion-item';
             div.innerHTML = `
                 <div>
-                    <div class="item-title">${escapeHtml(item.barrio)}</div>
+                    <div class="item-title"><i class="fa-solid fa-city text-blue"></i> ${escapeHtml(item.barrio)}</div>
                     <div class="item-sub">Zona: ${escapeHtml(item.zona)}</div>
                 </div>
                 <div class="item-price">$${item.tarifa_total.toLocaleString('es-CO')}</div>
             `;
             div.addEventListener('click', () => {
-                input.value = isAddressLike ? rawSearchVal : item.barrio;
+                input.value = item.barrio;
                 dropdown.classList.remove('show');
-                if (isAddressLike) {
-                    seleccionarBarrio(item.barrio, rawSearchVal);
-                } else {
-                    seleccionarBarrio(item.barrio, '');
-                }
+                seleccionarBarrio(item.barrio);
             });
             dropdown.appendChild(div);
         });
@@ -847,20 +921,25 @@ window.RapidinApp = (function () {
         dropdown.classList.add('show');
     }
 
-    /* Query Quotation for selected barrio / direccion */
-    async function seleccionarBarrio(nombreBarrio, direccionExacta = '') {
+    /* Query Quotation for selected barrio */
+    async function seleccionarBarrio(nombreBarrio) {
+        if (!nombreBarrio) return;
+
         if (!activeBusiness) {
             // Solicitar autenticación de cliente antes de cotizar
-            openLoginModal(nombreBarrio || direccionExacta);
+            openLoginModal(nombreBarrio);
             return;
         }
 
+        currentSelectedBarrio = nombreBarrio;
         const clienteName = activePricingClient || activeBusiness.nombre;
+        const rainOpt = document.querySelector('input[name="rain-option"]:checked')?.value || 'no';
+
         try {
             const queryParams = new URLSearchParams({
                 cliente: clienteName,
-                barrio: nombreBarrio || '',
-                direccion: direccionExacta || ''
+                barrio: nombreBarrio,
+                lluvia: rainOpt === 'si' ? '1' : '0'
             });
 
             const response = await fetch(`/api/cotizar?${queryParams.toString()}`);
@@ -871,16 +950,15 @@ window.RapidinApp = (function () {
                 renderResultCard(selectedCotizacion);
                 const destData = {
                     ...selectedCotizacion.destino,
-                    direccion_exacta: selectedCotizacion.direccion_exacta,
                     tarifa_total: selectedCotizacion.tarifa_total,
                     distancia_km: selectedCotizacion.distancia_km
                 };
                 window.RapidinMap.updateRoute(destData);
             } else {
-                showToast("⚠️ " + (data.message || "No se pudo realizar la cotización para el destino seleccionado."));
+                showToast("⚠️ " + (data.message || "No se pudo realizar la cotización para el barrio seleccionado."));
             }
         } catch (err) {
-            console.error("Error al cotizar barrio/dirección:", err);
+            console.error("Error al cotizar barrio:", err);
             showToast("❌ Error al conectar con el servidor backend.");
         }
     }
@@ -895,28 +973,39 @@ window.RapidinApp = (function () {
         document.getElementById('res-barrio-name').textContent = cot.destino.barrio;
         document.getElementById('res-barrio-zona').textContent = `Zona ${cot.destino.zona}`;
 
-        // Mostrar u ocultar bloque de dirección exacta
-        const dirBox = document.getElementById('res-direccion-box');
-        const dirVal = document.getElementById('res-direccion-exacta');
-        if (dirBox && dirVal) {
-            if (cot.direccion_exacta) {
-                if (cot.barrio_asignado_cercano) {
-                    dirVal.innerHTML = `${escapeHtml(cot.direccion_exacta)} <small style="display:block; color:#475569; font-weight:600; font-size:0.8rem; margin-top:2px;"><i class="fa-solid fa-crosshairs text-blue"></i> Barrio asignado por cercanía: <strong>${escapeHtml(cot.barrio_asignado_cercano)}</strong></small>`;
-                } else {
-                    dirVal.textContent = cot.direccion_exacta;
-                }
-                dirBox.style.display = 'flex';
-            } else {
-                dirBox.style.display = 'none';
-            }
-        }
-
         document.getElementById('res-price-amount').textContent = cot.tarifa_total.toLocaleString('es-CO');
         document.getElementById('res-distancia').textContent = `${cot.distancia_km} km`;
         document.getElementById('res-tiempo').textContent = `${cot.tiempo_entrega_min} min`;
 
-        document.getElementById('res-tarifa-base').textContent = `$${cot.tarifa_base.toLocaleString('es-CO')} COP`;
-        document.getElementById('res-recargo').textContent = `$${cot.recargo_distancia.toLocaleString('es-CO')} COP`;
+        // Desglose de Tarifas y Recargos Especiales
+        document.getElementById('res-tarifa-barrio').textContent = `$${(cot.tarifa_barrio || cot.tarifa_total).toLocaleString('es-CO')} COP`;
+
+        const resNocturno = document.getElementById('res-recargo-nocturno');
+        if (resNocturno) {
+            if (cot.recargo_nocturno > 0) {
+                resNocturno.textContent = `+$${cot.recargo_nocturno.toLocaleString('es-CO')} COP`;
+                resNocturno.style.color = '#4f46e5';
+                resNocturno.style.fontWeight = '700';
+            } else {
+                resNocturno.textContent = `$0 COP`;
+                resNocturno.style.color = '#64748b';
+                resNocturno.style.fontWeight = '500';
+            }
+        }
+
+        const resLluvia = document.getElementById('res-recargo-lluvia');
+        if (resLluvia) {
+            if (cot.recargo_lluvia > 0) {
+                resLluvia.textContent = `+$${cot.recargo_lluvia.toLocaleString('es-CO')} COP`;
+                resLluvia.style.color = '#2563eb';
+                resLluvia.style.fontWeight = '700';
+            } else {
+                resLluvia.textContent = `$0 COP`;
+                resLluvia.style.color = '#64748b';
+                resLluvia.style.fontWeight = '500';
+            }
+        }
+
         document.getElementById('res-total-breakdown').textContent = `$${cot.tarifa_total.toLocaleString('es-CO')} COP`;
 
         const gmapsBtn = document.getElementById('btn-google-maps');
@@ -973,32 +1062,67 @@ window.RapidinApp = (function () {
             const direccion = document.getElementById('order-direccion').value.trim();
             const notas = document.getElementById('order-notas').value.trim();
 
+            const clienteEmpresa = activeBusiness ? activeBusiness.nombre : "Mailys";
+            const direccionOrigen = activeBusiness ? (activeBusiness.direccion_origen || activeBusiness.direccion || "Villavicencio") : "Villavicencio";
+            const barrioDestino = selectedCotizacion.destino.barrio;
+            const zonaDestino = selectedCotizacion.destino.zona;
+            const tarifaBarrio = selectedCotizacion.tarifa_barrio || selectedCotizacion.destino.tarifa_total || selectedCotizacion.tarifa_total;
+            const recargoNocturno = selectedCotizacion.recargo_nocturno || 0;
+            const recargoLluvia = selectedCotizacion.recargo_lluvia || 0;
+            const totalPagar = selectedCotizacion.tarifa_total;
+            const tiempoEntrega = selectedCotizacion.tiempo_entrega_min;
+            const mapsUrl = selectedCotizacion.google_maps_url;
+
+            // Construir mensaje estructurado para WhatsApp (+57 310 3421690)
+            const waMessage = 
+`🚀 *SOLICITUD DE DOMICILIO - DOMICILIOS RAPIDIN* 🚀
+
+🏢 *Cliente / Empresa:* ${clienteEmpresa}
+📍 *Origen (Sede Despacho):* ${direccionOrigen}
+
+🏘️ *Barrio Destino:* ${barrioDestino} (Zona ${zonaDestino})
+📍 *Dirección de Entrega:* ${direccion || 'No especificada'}
+📝 *Notas / Indicaciones:* ${notas || 'Sin observaciones'}
+
+💰 *DESGLOSE DE TARIFA:*
+• Tarifa Base Barrio: $${tarifaBarrio.toLocaleString('es-CO')} COP
+• Recargo Nocturno: +$${recargoNocturno.toLocaleString('es-CO')} COP
+• Recargo por Lluvia: +$${recargoLluvia.toLocaleString('es-CO')} COP
+📌 *TOTAL DOMICILIO:* $${totalPagar.toLocaleString('es-CO')} COP
+
+⏱️ *Tiempo Estimado:* ${tiempoEntrega} min
+🗺️ *Ruta Google Maps:* ${mapsUrl}`;
+
+            const phoneWhatsApp = "573103421690";
+            const waUrl = `https://api.whatsapp.com/send?phone=${phoneWhatsApp}&text=${encodeURIComponent(waMessage)}`;
+
+            // Guardar registro en el servidor backend (/api/pedidos)
             const payload = {
-                cliente_empresa: activeBusiness ? activeBusiness.nombre : "Mailys",
-                barrio_destino: selectedCotizacion.destino.barrio,
+                cliente_empresa: clienteEmpresa,
+                barrio_destino: barrioDestino,
                 direccion_destino: direccion,
                 notas: notas,
-                tarifa_total: selectedCotizacion.tarifa_total,
-                distancia_km: selectedCotizacion.distancia_km
+                tarifa_total: totalPagar,
+                distancia_km: selectedCotizacion.distancia_km,
+                whatsapp_destino: "+57 310 3421690"
             };
 
             try {
-                const response = await fetch('/api/pedidos', {
+                await fetch('/api/pedidos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const res = await response.json();
-                if (res.status === 'success') {
-                    closeModal();
-                    showToast(`✅ Domicilio ${res.pedido.id} creado con éxito para ${res.pedido.barrio_destino}.`);
-                    document.getElementById('order-direccion').value = '';
-                    document.getElementById('order-notas').value = '';
-                }
             } catch (err) {
-                console.error("Error al crear pedido:", err);
-                showToast("❌ Error al guardar la solicitud.");
+                console.error("Error al registrar pedido:", err);
             }
+
+            // Redirigir a WhatsApp
+            window.open(waUrl, '_blank');
+            closeModal();
+            showToast(`📲 Solicitud de Domicilio enviada a WhatsApp (+57 310 3421690).`);
+            document.getElementById('order-direccion').value = '';
+            document.getElementById('order-notas').value = '';
         });
     }
 

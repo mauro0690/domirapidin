@@ -45,6 +45,14 @@ def run_tests():
         assert "google_maps_url" in cot, "URL de Google Maps no generada"
         print(f"✅ /api/cotizar?barrio=Amarilo OK: Tarifa ${cot['tarifa_total']:,} COP | Distancia {cot['distancia_km']} km.")
 
+        # 2a. Test Recargo por Lluvia
+        req_rain = opener.open(f"{BASE_URL}/api/cotizar?barrio=Amarilo&lluvia=1")
+        res_rain = json.loads(req_rain.read().decode('utf-8'))
+        cot_rain = res_rain["cotizacion"]
+        assert cot_rain["recargo_lluvia"] == 1000, "Recargo por lluvia de 1000 COP no aplicado"
+        assert cot_rain["tarifa_total"] == cot["tarifa_total"] + 1000, "Tarifa total no incluyó los 1000 COP de lluvia"
+        print(f"✅ /api/cotizar con Recargo por Lluvia OK: Tarifa con lluvia ${cot_rain['tarifa_total']:,} COP.")
+
         # 2b. Test /api/cotizar?direccion=Calle%2015%20%2338-20%20Rosales
         req = opener.open(f"{BASE_URL}/api/cotizar?direccion=Calle%2015%20%2338-20%20Rosales")
         res = json.loads(req.read().decode('utf-8'))

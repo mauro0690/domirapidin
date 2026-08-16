@@ -398,7 +398,9 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             return
 
         content_type = "text/html; charset=utf-8"
-        if full_path.endswith('.css'):
+        if full_path.endswith('manifest.json'):
+            content_type = "application/manifest+json; charset=utf-8"
+        elif full_path.endswith('.css'):
             content_type = "text/css; charset=utf-8"
         elif full_path.endswith('.js'):
             content_type = "application/javascript; charset=utf-8"
@@ -416,6 +418,9 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 content = f.read()
             self.send_response(200)
             self.send_header('Content-Type', content_type)
+            if full_path.endswith('sw.js'):
+                self.send_header('Service-Worker-Allowed', '/')
+                self.send_header('Cache-Control', 'no-cache')
             self.send_header('Content-Length', str(len(content)))
             self.end_headers()
             self.wfile.write(content)

@@ -10,3 +10,4 @@ backend/lib/
 # Cache de Python
 __pycache__/
 *.pyc
+.~lock*

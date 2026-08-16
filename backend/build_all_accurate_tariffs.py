@@ -228,11 +228,11 @@ def process_all_pdf():
 
         if existing_entry:
             client_id = existing_entry['id']
-            access_code = existing_entry.get('codigo_acceso', 'DomiRapidin')
+            access_code = existing_entry.get('codigo_acceso', '123456@')
             origin_addr = existing_entry.get('direccion_origen') or b_data['address'] or "Villavicencio, Meta"
             user_val = existing_entry.get('usuario', f"user_{b_slug}")
         else:
-            access_code = 'DomiRapidin'
+            access_code = '123456@'
             origin_addr = b_data['address'] or "Villavicencio, Meta"
             user_val = f"user_{b_slug}"
 

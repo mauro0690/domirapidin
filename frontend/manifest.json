@@ -1,0 +1,50 @@
+{
+  "name": "DomiciliosRapidin - Tarificador de Domicilios",
+  "short_name": "Rapidín",
+  "description": "Plataforma oficial de cotización de tarifas y gestión de domicilios de DomiciliosRapidin",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "categories": [
+    "business",
+    "food",
+    "logistics",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cotizar Barrio",
+      "short_name": "Cotizar",
+      "description": "Buscar tarifa por barrio o dirección",
+      "url": "/#search-barrio-input"
+    },
+    {
+      "name": "Mi Negocio",
+      "short_name": "Perfil",
+      "description": "Ver datos de mi negocio",
+      "url": "/#nav-tab-profile"
+    }
+  ]
+}

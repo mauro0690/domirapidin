@@ -17,11 +17,15 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <!-- App CSS -->
     <link rel="stylesheet" href="css/styles.css">
-    <!-- App Favicon -->
-    <link rel="icon" type="image/png" href="img/logo.png">
-    <link rel="icon" type="image/webp" href="img/rapidin_favicon.webp">
-    <link rel="shortcut icon" href="img/logo.png" type="image/png">
-    <link rel="apple-touch-icon" href="img/logo.png">
+    <!-- App Favicon & PWA -->
+    <link rel="icon" type="image/png" href="/icons/icon-192.png">
+    <link rel="shortcut icon" href="/icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rapidín">
 </head>
 
 <body>
@@ -50,7 +54,10 @@
                 </button>
             </nav>
 
-            <div class="user-profile">
+            <div class="user-profile" style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" id="btn-install-pwa" class="btn btn-outline btn-sm" style="display:none; align-items:center; gap:6px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-weight:700; border-radius:20px; padding:0.4rem 0.85rem;" title="Instalar aplicación en tu dispositivo">
+                    <i class="fa-solid fa-download"></i> Instalar App
+                </button>
                 <button type="button" id="btn-user-menu-toggle" class="btn-menu-toggle" aria-label="Menú de usuario"
                     title="Opciones de usuario">
                     <div id="header-business-avatar" class="avatar">
@@ -66,6 +73,9 @@
                             Cliente</span>
                     </div>
                     <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" id="btn-dropdown-install-pwa">
+                        <i class="fa-solid fa-mobile-screen-button"></i> Instalar App Rapidín
+                    </button>
                     <div class="dropdown-actions">
                         <button type="button" id="btn-switch-business" class="dropdown-item">
                             <i class="fa-solid fa-right-to-bracket"></i> Ingreso Negocio

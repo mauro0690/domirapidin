@@ -1390,6 +1390,42 @@ window.RapidinApp = (function () {
         }
     }
 
+    // PWA Service Worker Registration & Installation Prompt
+    let deferredPwaPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('[PWA] Service Worker registrado:', reg.scope))
+                .catch(err => console.warn('[PWA] Service Worker error:', err));
+        });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        const installBtn = document.getElementById('btn-install-pwa');
+        if (installBtn) installBtn.style.display = 'inline-flex';
+    });
+
+    async function triggerPwaInstall() {
+        if (!deferredPwaPrompt) {
+            showToast('📱 <strong>Para instalar DomiciliosRapidin:</strong><br>• En iPhone / iOS: Toca <strong>Compartir</strong> <i class="fa-solid fa-share-nodes"></i> y selecciona <strong>"Agregar a Inicio"</strong>.<br>• En Android / Chrome: Toca el menú de tres puntos <i class="fa-solid fa-ellipsis-vertical"></i> e <strong>"Instalar Aplicación"</strong>.');
+            return;
+        }
+        deferredPwaPrompt.prompt();
+        const { outcome } = await deferredPwaPrompt.userChoice;
+        if (outcome === 'accepted') {
+            showToast('🎉 ¡Gracias por instalar DomiciliosRapidin!');
+        }
+        deferredPwaPrompt = null;
+        const installBtn = document.getElementById('btn-install-pwa');
+        if (installBtn) installBtn.style.display = 'none';
+    }
+
+    document.getElementById('btn-install-pwa')?.addEventListener('click', triggerPwaInstall);
+    document.getElementById('btn-dropdown-install-pwa')?.addEventListener('click', triggerPwaInstall);
+
     return {
         showToast: showToast,
         loadBarrios: loadBarrios,

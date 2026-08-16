@@ -139,9 +139,7 @@ def init_cloud_tables():
             sector VARCHAR(255),
             barrio VARCHAR(255) NOT NULL,
             tarifa_base INT DEFAULT 6000,
-            tarifa_total INT DEFAULT 6000,
-            tiempo_estimado VARCHAR(50) DEFAULT '25-35 min',
-            distancia_aprox_km FLOAT DEFAULT 3.0
+            tarifa_total INT DEFAULT 6000
         );
         """)
 

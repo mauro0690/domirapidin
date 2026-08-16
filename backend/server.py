@@ -14,7 +14,7 @@ import hashlib
 import secrets
 import shutil
 
-PORT = 8080
+PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
 CSV_FILE = os.path.join(BASE_DIR, 'database', 'tarifario_mailys.csv')
@@ -105,6 +105,17 @@ ORIGEN_SEDE = {
     "longitud": -73.6339
 }
 
+def parse_int_safe(val, default=0):
+    if val is None:
+        return default
+    s = str(val).strip().upper()
+    if s in ['NO', 'N/A', 'NO APLICA', 'SIN COBERTURA', 'NO CUBRE', '']:
+        return 0
+    digits = re.sub(r'[^\d]', '', s)
+    if digits:
+        return int(digits)
+    return default
+
 def load_spreadsheet_data(file_path=CSV_FILE):
     data = []
     if not os.path.exists(file_path):
@@ -112,45 +123,51 @@ def load_spreadsheet_data(file_path=CSV_FILE):
     with open(file_path, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            try:
-                base_t = int(row.get("tarifa_base", row.get("tarifa_total", 6000)))
-                tot_t = int(row.get("tarifa_total", base_t))
-                rec_t = int(row.get("recargo_distancia", 0))
-                dist = float(row.get("distancia_aprox_km", row.get("distancia_km", 2.5)))
-            except (ValueError, TypeError):
-                base_t, tot_t, rec_t, dist = 6000, 6000, 0, 2.5
+            b_name = row.get("barrio", "").strip()
+            if not b_name:
+                continue
 
+            base_raw = row.get("tarifa_base")
+            tot_raw = row.get("tarifa_total")
+            rec_raw = row.get("recargo_distancia")
+
+            is_no_cov = (str(base_raw).strip().upper() in ['NO', 'N/A', 'NO APLICA', 'SIN COBERTURA']) or (str(tot_raw).strip().upper() in ['NO', 'N/A', 'NO APLICA', 'SIN COBERTURA'])
+
+            base_t = parse_int_safe(base_raw, 0)
+            tot_t = parse_int_safe(tot_raw, base_t)
+            rec_t = parse_int_safe(rec_raw, 0)
+
+            sec = row.get("sector", row.get("zona", "SECTOR GENERAL")).strip()
             data.append({
-                "id": int(row.get("id", 1)),
-                "barrio": row.get("barrio", "").strip(),
-                "zona": row.get("zona", row.get("sector", "General")).strip(),
-                "latitud": float(row.get("latitud", 4.1488)),
-                "longitud": float(row.get("longitud", -73.6339)),
-                "distancia_km": dist,
+                "sector": sec,
+                "barrio": b_name,
+                "zona": sec,
                 "tarifa_base": base_t,
                 "recargo_distancia": rec_t,
                 "tarifa_total": tot_t,
-                "tiempo_entrega_min": int(row.get("tiempo_entrega_min", 25))
+                "sin_cobertura": is_no_cov or (tot_t == 0)
             })
     return data
 
 def save_spreadsheet_data(barrios_list, file_path=CSV_FILE):
-    fieldnames = ["id", "barrio", "zona", "latitud", "longitud", "distancia_km", "tarifa_base", "recargo_distancia", "tarifa_total", "tiempo_entrega_min"]
+    fieldnames = ["sector", "barrio", "tarifa_base", "recargo_distancia", "tarifa_total"]
     with open(file_path, mode='w', encoding='utf-8', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        for idx, item in enumerate(barrios_list, 1):
+        for item in barrios_list:
+            b_name = item.get("barrio", "").strip()
+            if not b_name:
+                continue
+            sec = item.get("sector", item.get("zona", "SECTOR GENERAL")).strip()
+            base_t = int(item.get("tarifa_base", 6000))
+            rec_t = int(item.get("recargo_distancia", 0))
+            tot_t = int(item.get("tarifa_total", base_t + rec_t))
             writer.writerow({
-                "id": idx,
-                "barrio": item.get("barrio", "").strip(),
-                "zona": item.get("zona", "General").strip(),
-                "latitud": float(item.get("latitud", 4.1488)),
-                "longitud": float(item.get("longitud", -73.6339)),
-                "distancia_km": float(item.get("distancia_km", 2.0)),
-                "tarifa_base": int(item.get("tarifa_base", 6000)),
-                "recargo_distancia": int(item.get("recargo_distancia", 1000)),
-                "tarifa_total": int(item.get("tarifa_total", 7000)),
-                "tiempo_entrega_min": int(item.get("tiempo_entrega_min", 20))
+                "sector": sec,
+                "barrio": b_name,
+                "tarifa_base": base_t,
+                "recargo_distancia": rec_t,
+                "tarifa_total": tot_t
             })
 
 from database_manager import load_clientes_db, save_clientes_db, get_pedidos_db, save_pedido_db, init_cloud_tables
@@ -265,7 +282,9 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                         closest_barrio = None
                         min_dist = float('inf')
                         for b in barrios:
-                            dist = haversine_km(geo_res['lat'], geo_res['lon'], b['latitud'], b['longitud'])
+                            b_lat = b.get('latitud', 4.1488)
+                            b_lon = b.get('longitud', -73.6339)
+                            dist = haversine_km(geo_res['lat'], geo_res['lon'], b_lat, b_lon)
                             if dist < min_dist:
                                 min_dist = dist
                                 closest_barrio = b
@@ -279,8 +298,13 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json_response({"status": "error", "message": err_msg}, status=404)
                 return
 
-            final_lat = geo_res['lat'] if geo_res else target['latitud']
-            final_lon = geo_res['lon'] if geo_res else target['longitud']
+            if target.get("sin_cobertura") or target.get("tarifa_total", 0) == 0:
+                err_msg = f"El barrio '{target['barrio']}' figura sin servicio/cobertura de domicilio para {cliente_nombre}."
+                self.send_json_response({"status": "error", "message": err_msg}, status=400)
+                return
+
+            final_lat = geo_res['lat'] if geo_res else target.get('latitud', 4.1488)
+            final_lon = geo_res['lon'] if geo_res else target.get('longitud', -73.6339)
             origen_payload = {
                 "nombre": f"Sede Principal {c['nombre']}" if c else ORIGEN_SEDE['nombre'],
                 "direccion": c.get("direccion_origen", ORIGEN_SEDE['direccion']) if c else ORIGEN_SEDE['direccion'],
@@ -327,17 +351,13 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                     "cliente": cliente_nombre,
                     "origen": origen_payload,
                     "destino": {
-                        "id": target["id"],
                         "barrio": target["barrio"],
-                        "zona": target["zona"],
+                        "sector": target.get("sector", target.get("zona", "SECTOR GENERAL")),
                         "latitud": final_lat,
-                        "longitud": final_lon,
-                        "barrio_latitud": target["latitud"],
-                        "barrio_longitud": target["longitud"]
+                        "longitud": final_lon
                     },
                     "direccion_exacta": direccion_str if direccion_str else None,
                     "barrio_asignado_cercano": target["barrio"] if is_geocoded_proximity else None,
-                    "distancia_km": target["distancia_km"],
                     "tarifa_base": target["tarifa_base"],
                     "recargo_distancia": target["recargo_distancia"],
                     "tarifa_barrio": tarifa_barrio,
@@ -346,7 +366,6 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                     "es_lluvia": es_lluvia,
                     "recargo_lluvia": recargo_lluvia,
                     "tarifa_total": tarifa_final,
-                    "tiempo_entrega_min": target["tiempo_entrega_min"],
                     "moneda": "COP",
                     "google_maps_url": google_maps_url
                 }

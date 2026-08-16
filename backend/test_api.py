@@ -43,7 +43,7 @@ def run_tests():
         cot = res["cotizacion"]
         assert "amarilo" in cot["destino"]["barrio"].lower(), "Barrio retornado no contiene Amarilo"
         assert "google_maps_url" in cot, "URL de Google Maps no generada"
-        print(f"✅ /api/cotizar?barrio=Amarilo OK: Tarifa ${cot['tarifa_total']:,} COP | Distancia {cot['distancia_km']} km.")
+        print(f"✅ /api/cotizar?barrio=Amarilo OK: Tarifa ${cot['tarifa_total']:,} COP.")
 
         # 2a. Test Recargo por Lluvia
         req_rain = opener.open(f"{BASE_URL}/api/cotizar?barrio=Amarilo&lluvia=1")

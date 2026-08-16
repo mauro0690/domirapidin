@@ -119,21 +119,22 @@ def migrate():
                     try:
                         base = int(r.get('tarifa_base', r.get('tarifa_total', 6000)))
                         tot = int(r.get('tarifa_total', base))
-                        dist = float(r.get('distancia_aprox_km', 3.0))
                     except ValueError:
-                        base, tot, dist = 6000, 6000, 3.0
+                        base, tot = 6000, 6000
 
-                    sector = sql_quote(r.get('sector', 'SECTOR GENERAL'))
+                    sector = sql_quote(r.get('sector', r.get('zona', 'SECTOR GENERAL')))
                     barrio = sql_quote(r.get('barrio', ''))
-                    tiempo = sql_quote(r.get('tiempo_estimado', '25-35 min'))
 
-                    batch_inserts.append(f"({c_slug}, {sector}, {barrio}, {base}, {tot}, {tiempo}, {dist})")
+                    if not r.get('barrio', '').strip():
+                        continue
+
+                    batch_inserts.append(f"({c_slug}, {sector}, {barrio}, {base}, {tot})")
 
                 # Insertar en lotes de 100 registros para alta velocidad
                 for chunk_idx in range(0, len(batch_inserts), 100):
                     chunk = batch_inserts[chunk_idx : chunk_idx + 100]
                     query_tarifa = f"""
-                    INSERT INTO tarifas (cliente_slug, sector, barrio, tarifa_base, tarifa_total, tiempo_estimado, distancia_aprox_km)
+                    INSERT INTO tarifas (cliente_slug, sector, barrio, tarifa_base, tarifa_total)
                     VALUES {','.join(chunk)};
                     """
                     conn.run(query_tarifa)

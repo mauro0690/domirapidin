@@ -244,10 +244,9 @@ def process_all_pdf():
         csv_filepath = os.path.join(BASE_DIR, 'database', csv_filename)
 
         rows = b_data['rows']
-        fieldnames = ["id", "sector", "barrio", "tarifa_base", "recargo_distancia", "tarifa_total", "tiempo_estimado", "distancia_aprox_km"]
+        fieldnames = ["sector", "barrio", "tarifa_base", "recargo_distancia", "tarifa_total"]
 
         unique_barrios = {}
-        row_id = 1
 
         with open(csv_filepath, 'w', encoding='utf-8', newline='') as csv_out:
             writer = csv.DictWriter(csv_out, fieldnames=fieldnames)
@@ -261,28 +260,13 @@ def process_all_pdf():
                 price = int(r['tarifa'])
                 unique_barrios[barrio_name] = True
 
-                if price <= 6000:
-                    t_est, d_est = "15-25 min", 2.0
-                elif price <= 7000:
-                    t_est, d_est = "20-30 min", 3.2
-                elif price <= 8000:
-                    t_est, d_est = "25-35 min", 4.5
-                elif price <= 10000:
-                    t_est, d_est = "30-40 min", 6.0
-                else:
-                    t_est, d_est = "35-50 min", 8.5
-
                 writer.writerow({
-                    "id": row_id,
                     "sector": r.get('sector', 'SECTOR GENERAL'),
                     "barrio": barrio_name,
                     "tarifa_base": price,
                     "recargo_distancia": 0,
-                    "tarifa_total": price,
-                    "tiempo_estimado": t_est,
-                    "distancia_aprox_km": d_est
+                    "tarifa_total": price
                 })
-                row_id += 1
 
         client_entry = {
             "id": client_id,

@@ -375,6 +375,11 @@
                             </div>
 
                             <div class="form-group">
+                                <label><i class="fa-solid fa-user-tag"></i> Nombre de Usuario de Acceso</label>
+                                <input type="text" id="profile-usuario" class="readonly-input" readonly style="background:#f8fafc; font-weight:700; color:#0f172a;">
+                            </div>
+
+                            <div class="form-group">
                                 <label for="profile-categoria">Categoría de Negocio</label>
                                 <select id="profile-categoria" class="form-control" style="width:100%;">
                                     <option value="Restaurante">Restaurante</option>
@@ -454,7 +459,8 @@
                                 <thead>
                                     <tr>
                                         <th>ID Cliente</th>
-                                        <th>Nombre del Negocio (Usuario)</th>
+                                        <th>Nombre del Negocio</th>
+                                        <th>Usuario de Acceso</th>
                                         <th>Código / Contraseña Asignada</th>
                                         <th>Dirección</th>
                                         <th>Latitud</th>
@@ -616,10 +622,10 @@
                 </div>
                 <form id="login-form" class="modal-body">
                     <div class="form-group">
-                        <label for="login-business-name">Nombre del Negocio (Nombre de Usuario) *</label>
+                        <label for="login-business-name">Nombre de Usuario o Nombre del Negocio *</label>
                         <div class="input-with-icon">
                             <i class="fa-solid fa-building"></i>
-                            <input type="text" id="login-business-name" placeholder="" required autocomplete="off">
+                            <input type="text" id="login-business-name" placeholder="Ej. user_mailys o Mailys" required autocomplete="off">
                         </div>
                     </div>
                     <div class="form-group">

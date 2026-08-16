@@ -560,6 +560,7 @@ window.RapidinApp = (function () {
             tr.innerHTML = `
                 <td><strong>${escapeHtml(c.id)}</strong></td>
                 <td><input type="text" data-field="nombre" value="${escapeHtml(c.nombre)}"></td>
+                <td><input type="text" data-field="usuario" value="${escapeHtml(c.usuario || ('user_' + (c.slug || '')))}" style="font-weight:600; color:#0f172a;"></td>
                 <td>
                     <div style="position: relative; display: flex; align-items: center; width: 100%;">
                         <input type="password" data-field="codigo_acceso" value="${c.codigo_acceso && c.codigo_acceso.startsWith('pbkdf2:') ? '••••••••' : escapeHtml(c.codigo_acceso || '')}" style="font-weight:700; color:#1d4ed8; padding-right: 2.2rem; width: 100%;">
@@ -1280,12 +1281,14 @@ window.RapidinApp = (function () {
     function loadProfileFromBusiness(business) {
         if (!business) return;
         const nameInput = document.getElementById('profile-nombre');
+        const userInput = document.getElementById('profile-usuario');
         const catSelect = document.getElementById('profile-categoria');
         const descTA = document.getElementById('profile-descripcion');
         const dirInput = document.getElementById('profile-direccion');
         const charCount = document.getElementById('profile-desc-chars');
 
         if (nameInput) nameInput.value = business.nombre || '';
+        if (userInput) userInput.value = business.usuario || ('user_' + (business.slug || ''));
         if (catSelect && business.categoria) {
             const opt = catSelect.querySelector(`option[value="${business.categoria}"]`);
             if (opt) catSelect.value = business.categoria;

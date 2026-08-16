@@ -3,7 +3,9 @@
 
 # Archivos de base de datos local (producción/desarrollo dinámicos)
 backend/database/clientes.json
-backend/database/pedidos.json
+
+# Librerías locales instaladas dinámicamente en Render
+backend/lib/
 
 # Cache de Python
 __pycache__/

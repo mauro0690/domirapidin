@@ -1,1 +1,2 @@
-# DomiciliosRapidin - Standard Python Library (no third-party pip dependencies required)
+# DomiciliosRapidin - Python Cloud Database Dependencies
+pg8000>=1.30.0

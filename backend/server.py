@@ -145,31 +145,25 @@ def save_spreadsheet_data(barrios_list, file_path=CSV_FILE):
                 "tiempo_entrega_min": int(item.get("tiempo_entrega_min", 20))
             })
 
+from database_manager import load_clientes_db, save_clientes_db, get_pedidos_db, save_pedido_db, init_cloud_tables
+
+# Inicializar esquemas de la nube si DATABASE_URL está configurado
+init_cloud_tables()
+
 def load_pedidos():
-    if not os.path.exists(PEDIDOS_FILE):
-        return []
-    with open(PEDIDOS_FILE, 'r', encoding='utf-8') as f:
-        try:
-            return json.load(f)
-        except:
-            return []
+    return get_pedidos_db()
 
 def save_pedidos(pedidos):
-    with open(PEDIDOS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(pedidos, f, ensure_ascii=False, indent=2)
+    if isinstance(pedidos, list) and len(pedidos) > 0:
+        save_pedido_db(pedidos[0])
+    elif isinstance(pedidos, dict):
+        save_pedido_db(pedidos)
 
 def load_clientes():
-    if not os.path.exists(CLIENTES_FILE):
-        return []
-    with open(CLIENTES_FILE, 'r', encoding='utf-8') as f:
-        try:
-            return json.load(f)
-        except:
-            return []
+    return load_clientes_db()
 
 def save_clientes(clientes):
-    with open(CLIENTES_FILE, 'w', encoding='utf-8') as f:
-        json.dump(clientes, f, ensure_ascii=False, indent=2)
+    save_clientes_db(clientes)
 
 class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
     def end_headers(self):

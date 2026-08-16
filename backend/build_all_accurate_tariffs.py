@@ -32,68 +32,6 @@ def slugify(text):
     text = re.sub(r'[^a-z0-9]+', '_', text)
     return text.strip('_')
 
-# Definición exacta de los 58 bloques de 23 páginas mapeados a los 45 negocios únicos
-BLOCK_BUSINESS_NAMES = [
-    "MAILYS WEB",                        # Pág 1-23
-    "LUCHO BURGUES WEB",                 # Pág 24-46
-    "GOMIENCHILADAS WEB",                # Pág 47-69
-    "AREPAS Y MAZAMORRA WEB",            # Pág 70-92
-    "PIZZA RAFA WEB",                    # Pág 93-115
-    "WILL BURGUES WEB",                  # Pág 116-138
-    "AL PALO PIZZA WEB",                 # Pág 139-161
-    "ALITAS PICANTES WEB",               # Pág 162-184
-    "ALITAS PICANTES WEB",               # Pág 185-207
-    "SALCHIBURGUES WEB",                 # Pág 208-230
-    "LA BENDITA WEB",                    # Pág 231-253
-    "LA BENDITA WEB",                    # Pág 254-276
-    "MANDARINO WEB",                     # Pág 277-299
-    "YUSUCHY WEB",                       # Pág 300-322
-    "LA ESPECIALIDAD WEB",               # Pág 323-345
-    "RUBENCHOS WEB",                     # Pág 346-368
-    "WEN CHINO WEB",                     # Pág 369-391
-    "COMO ARROZ WEB",                    # Pág 392-414
-    "COMO ARROZ WEB",                    # Pág 415-437
-    "EMPANADISIMAS WEB",                 # Pág 438-460
-    "EMPANADAS FABIO WEB",               # Pág 461-483
-    "CRISPY CONOS WEB",                  # Pág 484-506
-    "LECHONERIA MORENO WEB",             # Pág 507-529
-    "HONG KONG WEB",                     # Pág 530-552
-    "MACHY WEB",                         # Pág 553-575
-    "MACHY WEB",                         # Pág 576-598
-    "RYU SUSHI WEB",                     # Pág 599-621
-    "FRUCHELADAS WEB",                   # Pág 622-644
-    "FERCHO AREPAS WEB",                 # Pág 645-667
-    "JUAN CHORIZOS WEB",                 # Pág 668-690
-    "JUAN CHORIZOS WEB",                 # Pág 691-713
-    "CALDOS Y ALGO MAS WEB",             # Pág 714-736
-    "COMBOS WEB",                        # Pág 737-759
-    "SR DONAS WEB",                      # Pág 760-782
-    "LA BENDITA AREPA GRAMA WEB",        # Pág 783-805
-    "LA BENDITA AREPA GRAMA WEB",        # Pág 806-828
-    "SUPER ALITAS GRAMA WEB",            # Pág 829-851
-    "SUPER ALITAS CANTARRANA WEB",       # Pág 852-874
-    "SUPER ALITAS CANTARRANA WEB",       # Pág 875-897
-    "CARBON GRILL WEB",                  # Pág 898-920
-    "PANYPAS WEB",                       # Pág 921-943
-    "ALSON DEL MERENGUE WEB",            # Pág 944-966
-    "ALSON DEL MERENGUE WEB",            # Pág 967-989
-    "EL MERENGON WEB",                   # Pág 990-1012
-    "PARRILLERA VANGUARDIA WEB",         # Pág 1013-1035
-    "PARRILLERA VANGUARDIA WEB",         # Pág 1036-1058
-    "FLORISTERIA MAO WEB",               # Pág 1059-1081
-    "FLORISTERIA YINEHT WEB",            # Pág 1082-1104
-    "FLORISTERIA YINEHT WEB",            # Pág 1105-1127
-    "FLORISTERIA WENDY WEB",             # Pág 1128-1150
-    "FLORISTERIA WENDY WEB",             # Pág 1151-1173
-    "FLORISTERIA MOMENTO FLORAL WEB",    # Pág 1174-1196
-    "FLORISTERIA CELESTINA WEB",         # Pág 1197-1219
-    "FLORISTERIA CELESTINA WEB",         # Pág 1220-1242
-    "MONTAÑEROS WEB",                    # Pág 1243-1265
-    "KAKAREO WEB",                       # Pág 1266-1288
-    "KAKAREO WEB",                       # Pág 1289-1311
-    "HELADERIA LAS AMERICAS WEB"         # Pág 1312-1334
-]
-
 def parse_page(page):
     words = page.get_text('words')
     drawings = page.get_drawings()
@@ -228,30 +166,38 @@ def process_all_pdf():
 
     doc = pymupdf.open(pdf_path)
     total_pages = len(doc)
-    print(f"📖 Leyendo {total_pages} páginas del PDF para 45 negocios...")
+    print(f"📖 Leyendo {total_pages} páginas del PDF para negocios...")
 
     business_blocks = {}
+    current_business_name = None
 
-    for block_idx in range(58):
-        b_name_raw = BLOCK_BUSINESS_NAMES[block_idx] if block_idx < len(BLOCK_BUSINESS_NAMES) else f"NEGOCIO_{block_idx+1}"
-        b_name_clean = b_name_raw.upper().replace('WEB', '').strip().title()
+    for p_idx in range(total_pages):
+        page = doc[p_idx]
+        words = page.get_text('words')
+        top_words = [w for w in words if w[1] < 120]
+        top_words_sorted = sorted(top_words, key=lambda w: (round(w[1]/5.0)*5.0, w[0]))
+        top_text = ' '.join([w[4] for w in top_words_sorted])
 
-        if b_name_clean not in business_blocks:
-            business_blocks[b_name_clean] = {
-                'name': b_name_clean,
+        web_match = re.search(r'([A-ZÁÉÍÓÚÑ0-9\s]+WEB)', top_text, re.IGNORECASE)
+        if web_match:
+            b_title_raw = web_match.group(1).strip()
+            b_name_clean = b_title_raw.upper().replace('WEB', '').strip().title()
+            current_business_name = b_name_clean
+
+        if not current_business_name:
+            current_business_name = "Mailys"
+
+        if current_business_name not in business_blocks:
+            business_blocks[current_business_name] = {
+                'name': current_business_name,
                 'address': None,
                 'rows': []
             }
 
-        start_page = block_idx * 23
-        end_page = min((block_idx + 1) * 23, total_pages)
-
-        for p_idx in range(start_page, end_page):
-            page = doc[p_idx]
-            rows, page_addr = parse_page(page)
-            if page_addr and not business_blocks[b_name_clean]['address']:
-                business_blocks[b_name_clean]['address'] = page_addr
-            business_blocks[b_name_clean]['rows'].extend(rows)
+        rows, page_addr = parse_page(page)
+        if page_addr and not business_blocks[current_business_name]['address']:
+            business_blocks[current_business_name]['address'] = page_addr
+        business_blocks[current_business_name]['rows'].extend(rows)
 
     print(f"✅ Se consolidaron {len(business_blocks)} tablas de negocios únicas desde el PDF.")
 
@@ -284,9 +230,11 @@ def process_all_pdf():
             client_id = existing_entry['id']
             access_code = existing_entry.get('codigo_acceso', 'DomiRapidin')
             origin_addr = existing_entry.get('direccion_origen') or b_data['address'] or "Villavicencio, Meta"
+            user_val = existing_entry.get('usuario', f"user_{b_slug}")
         else:
             access_code = 'DomiRapidin'
             origin_addr = b_data['address'] or "Villavicencio, Meta"
+            user_val = f"user_{b_slug}"
 
         if existing_entry and existing_entry.get('archivo_tarifario'):
             csv_filename = existing_entry['archivo_tarifario']
@@ -335,8 +283,6 @@ def process_all_pdf():
                     "distancia_aprox_km": d_est
                 })
                 row_id += 1
-
-        user_val = existing_entry.get('usuario') if existing_entry and existing_entry.get('usuario') else f"user_{b_slug}"
 
         client_entry = {
             "id": client_id,

@@ -17,7 +17,7 @@ import shutil
 PORT = 8080
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
-CSV_FILE = os.path.join(BASE_DIR, 'database', 'tarifario_villavicencio.csv')
+CSV_FILE = os.path.join(BASE_DIR, 'database', 'tarifario_mailys.csv')
 PEDIDOS_FILE = os.path.join(BASE_DIR, 'database', 'pedidos.json')
 CLIENTES_FILE = os.path.join(BASE_DIR, 'database', 'clientes.json')
 

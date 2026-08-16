@@ -112,17 +112,25 @@ def load_spreadsheet_data(file_path=CSV_FILE):
     with open(file_path, mode='r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
+            try:
+                base_t = int(row.get("tarifa_base", row.get("tarifa_total", 6000)))
+                tot_t = int(row.get("tarifa_total", base_t))
+                rec_t = int(row.get("recargo_distancia", 0))
+                dist = float(row.get("distancia_aprox_km", row.get("distancia_km", 2.5)))
+            except (ValueError, TypeError):
+                base_t, tot_t, rec_t, dist = 6000, 6000, 0, 2.5
+
             data.append({
-                "id": int(row["id"]),
-                "barrio": row["barrio"],
-                "zona": row["zona"],
-                "latitud": float(row["latitud"]),
-                "longitud": float(row["longitud"]),
-                "distancia_km": float(row["distancia_km"]),
-                "tarifa_base": int(row["tarifa_base"]),
-                "recargo_distancia": int(row["recargo_distancia"]),
-                "tarifa_total": int(row["tarifa_total"]),
-                "tiempo_entrega_min": int(row["tiempo_entrega_min"])
+                "id": int(row.get("id", 1)),
+                "barrio": row.get("barrio", "").strip(),
+                "zona": row.get("zona", row.get("sector", "General")).strip(),
+                "latitud": float(row.get("latitud", 4.1488)),
+                "longitud": float(row.get("longitud", -73.6339)),
+                "distancia_km": dist,
+                "tarifa_base": base_t,
+                "recargo_distancia": rec_t,
+                "tarifa_total": tot_t,
+                "tiempo_entrega_min": int(row.get("tiempo_entrega_min", 25))
             })
     return data
 

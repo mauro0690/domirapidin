@@ -116,7 +116,12 @@ def parse_int_safe(val, default=0):
         return int(digits)
     return default
 
-def load_spreadsheet_data(file_path=CSV_FILE):
+def load_spreadsheet_data(file_path=CSV_FILE, cliente_slug=None):
+    if cliente_slug:
+        cloud_data = load_tarifas_db(cliente_slug)
+        if cloud_data is not None and len(cloud_data) > 0:
+            return cloud_data
+
     data = []
     if not os.path.exists(file_path):
         return data
@@ -159,9 +164,9 @@ def save_spreadsheet_data(barrios_list, file_path=CSV_FILE):
             if not b_name:
                 continue
             sec = item.get("sector", item.get("zona", "SECTOR GENERAL")).strip()
-            base_t = int(item.get("tarifa_base", 6000))
-            rec_t = int(item.get("recargo_distancia", 0))
-            tot_t = int(item.get("tarifa_total", base_t + rec_t))
+            base_t = parse_int_safe(item.get("tarifa_base", 6000))
+            rec_t = parse_int_safe(item.get("recargo_distancia", 0))
+            tot_t = parse_int_safe(item.get("tarifa_total", base_t + rec_t))
             writer.writerow({
                 "sector": sec,
                 "barrio": b_name,
@@ -170,7 +175,7 @@ def save_spreadsheet_data(barrios_list, file_path=CSV_FILE):
                 "tarifa_total": tot_t
             })
 
-from database_manager import load_clientes_db, save_clientes_db, get_pedidos_db, save_pedido_db, init_cloud_tables
+from database_manager import load_clientes_db, save_clientes_db, get_pedidos_db, save_pedido_db, init_cloud_tables, load_tarifas_db, save_tarifas_db
 
 # Inicializar esquemas de la nube si DATABASE_URL está configurado
 init_cloud_tables()
@@ -221,7 +226,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             if c and c.get("archivo_tarifario"):
                 csv_path = os.path.join(BASE_DIR, 'database', c["archivo_tarifario"])
 
-            barrios = load_spreadsheet_data(csv_path)
+            barrios = load_spreadsheet_data(csv_path, c["slug"] if c else None)
             q = query.get('q', [''])[0].lower().strip()
             if q:
                 barrios = [b for b in barrios if q in b['barrio'].lower() or q in b['zona'].lower()]
@@ -237,7 +242,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             if c and c.get("archivo_tarifario"):
                 csv_path = os.path.join(BASE_DIR, 'database', c["archivo_tarifario"])
 
-            barrios = load_spreadsheet_data(csv_path)
+            barrios = load_spreadsheet_data(csv_path, c["slug"] if c else None)
             raw_query = (query.get('barrio', [''])[0] or query.get('direccion', [''])[0] or query.get('q', [''])[0]).strip()
             b_id = query.get('id', [''])[0].strip()
             explicit_dir = query.get('direccion', [''])[0].strip()
@@ -382,7 +387,7 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
             if c and c.get("archivo_tarifario"):
                 csv_path = os.path.join(BASE_DIR, 'database', c["archivo_tarifario"])
 
-            barrios = load_spreadsheet_data(csv_path)
+            barrios = load_spreadsheet_data(csv_path, c["slug"] if c else None)
             self.send_json_response({
                 "status": "success",
                 "archivo": os.path.relpath(csv_path, BASE_DIR),
@@ -731,6 +736,8 @@ class DomiciliosRequestHandler(http.server.BaseHTTPRequestHandler):
                 return
             
             save_spreadsheet_data(nueva_lista, csv_path)
+            if c and c.get("slug"):
+                save_tarifas_db(c["slug"], nueva_lista)
             self.send_json_response({"status": "success", "message": "Hoja de cálculo actualizada con éxito", "filas": len(nueva_lista)})
             return
 

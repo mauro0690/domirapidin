@@ -307,3 +307,82 @@ def save_pedido_db(pedido):
             print("✅ Pedido guardado en la nube.", file=sys.stderr)
         except Exception as e:
             print(f"⚠️ Error guardando pedido en la nube: {e}", file=sys.stderr)
+
+def load_tarifas_db(cliente_slug):
+    """ Carga la lista de tarifas de un cliente directamente desde Supabase / PostgreSQL """
+    conn = get_pg_connection()
+    if conn and cliente_slug:
+        try:
+            parsed_slug = str(cliente_slug).strip()
+            rows = conn.run(
+                "SELECT sector, barrio, tarifa_base, tarifa_total FROM tarifas WHERE cliente_slug = :slug ORDER BY id ASC;",
+                slug=parsed_slug
+            )
+            conn.close()
+            if rows and len(rows) > 0:
+                barrios = []
+                for r in rows:
+                    sec = r[0] or "SECTOR GENERAL"
+                    barrio = r[1] or ""
+                    base_t = r[2] if r[2] is not None else 6000
+                    tot_t = r[3] if r[3] is not None else base_t
+                    rec_t = max(0, tot_t - base_t)
+                    barrios.append({
+                        "sector": sec,
+                        "barrio": barrio,
+                        "zona": sec,
+                        "tarifa_base": base_t,
+                        "recargo_distancia": rec_t,
+                        "tarifa_total": tot_t,
+                        "sin_cobertura": (tot_t == 0)
+                    })
+                return barrios
+        except Exception as e:
+            print(f"⚠️ Error leyendo tarifas de Supabase para '{cliente_slug}': {e}", file=sys.stderr)
+    return None
+
+def save_tarifas_db(cliente_slug, barrios_list):
+    """ Sincroniza en tiempo real la lista de tarifas de un cliente con Supabase PostgreSQL """
+    conn = get_pg_connection()
+    if conn and cliente_slug:
+        try:
+            parsed_slug = str(cliente_slug).strip()
+
+            def sql_quote(v):
+                if v is None:
+                    return "NULL"
+                s = str(v).replace("'", "''")
+                return f"'{s}'"
+
+            c_slug = sql_quote(parsed_slug)
+            conn.run(f"DELETE FROM tarifas WHERE cliente_slug = {c_slug};")
+
+            batch_inserts = []
+            for r in barrios_list:
+                b_name = r.get("barrio", "").strip()
+                if not b_name:
+                    continue
+                sec = sql_quote(r.get("sector", r.get("zona", "SECTOR GENERAL")))
+                barrio = sql_quote(b_name)
+                
+                try:
+                    base = int(r.get("tarifa_base", 6000))
+                    tot = int(r.get("tarifa_total", base))
+                except Exception:
+                    base, tot = 6000, 6000
+
+                batch_inserts.append(f"({c_slug}, {sec}, {barrio}, {base}, {tot})")
+
+            for chunk_idx in range(0, len(batch_inserts), 100):
+                chunk = batch_inserts[chunk_idx : chunk_idx + 100]
+                query_tarifa = f"""
+                INSERT INTO tarifas (cliente_slug, sector, barrio, tarifa_base, tarifa_total)
+                VALUES {','.join(chunk)};
+                """
+                conn.run(query_tarifa)
+            conn.close()
+            print(f"✅ {len(barrios_list)} tarifas sincronizadas en Supabase para '{cliente_slug}'.", file=sys.stderr)
+            return True
+        except Exception as e:
+            print(f"⚠️ Error al guardar tarifas en Supabase para '{cliente_slug}': {e}", file=sys.stderr)
+    return False

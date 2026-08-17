@@ -951,10 +951,11 @@ window.RapidinApp = (function () {
                 renderResultCard(selectedCotizacion);
                 const destData = {
                     ...selectedCotizacion.destino,
-                    tarifa_total: selectedCotizacion.tarifa_total,
-                    distancia_km: selectedCotizacion.distancia_km
+                    tarifa_total: selectedCotizacion.tarifa_total
                 };
-                window.RapidinMap.updateRoute(destData);
+                if (window.RapidinMap && window.RapidinMap.updateRoute) {
+                    window.RapidinMap.updateRoute(destData);
+                }
             } else {
                 showToast("⚠️ " + (data.message || "No se pudo realizar la cotización para el barrio seleccionado."));
             }
@@ -971,15 +972,28 @@ window.RapidinApp = (function () {
 
         if (!resultCard || !emptyState) return;
 
-        document.getElementById('res-barrio-name').textContent = cot.destino.barrio;
-        document.getElementById('res-barrio-zona').textContent = `Zona ${cot.destino.zona}`;
+        const resBarrioName = document.getElementById('res-barrio-name');
+        if (resBarrioName) resBarrioName.textContent = cot.destino.barrio;
 
-        document.getElementById('res-price-amount').textContent = cot.tarifa_total.toLocaleString('es-CO');
-        document.getElementById('res-distancia').textContent = `${cot.distancia_km} km`;
-        document.getElementById('res-tiempo').textContent = `${cot.tiempo_entrega_min} min`;
+        const resBarrioZona = document.getElementById('res-barrio-zona');
+        if (resBarrioZona) {
+            resBarrioZona.textContent = cot.destino.sector || cot.destino.zona || 'SECTOR GENERAL';
+        }
+
+        const resPriceAmount = document.getElementById('res-price-amount');
+        if (resPriceAmount) resPriceAmount.textContent = cot.tarifa_total.toLocaleString('es-CO');
+
+        const resDist = document.getElementById('res-distancia');
+        if (resDist) resDist.textContent = cot.distancia_km !== undefined ? `${cot.distancia_km} km` : '';
+
+        const resTiempo = document.getElementById('res-tiempo');
+        if (resTiempo) resTiempo.textContent = cot.tiempo_entrega_min !== undefined ? `${cot.tiempo_entrega_min} min` : '';
 
         // Desglose de Tarifas y Recargos Especiales
-        document.getElementById('res-tarifa-barrio').textContent = `$${(cot.tarifa_barrio || cot.tarifa_total).toLocaleString('es-CO')} COP`;
+        const resTarifaBarrio = document.getElementById('res-tarifa-barrio');
+        if (resTarifaBarrio) {
+            resTarifaBarrio.textContent = `$${(cot.tarifa_barrio || cot.tarifa_total).toLocaleString('es-CO')} COP`;
+        }
 
         const resNocturno = document.getElementById('res-recargo-nocturno');
         if (resNocturno) {
@@ -1007,11 +1021,14 @@ window.RapidinApp = (function () {
             }
         }
 
-        document.getElementById('res-total-breakdown').textContent = `$${cot.tarifa_total.toLocaleString('es-CO')} COP`;
+        const resTotalBreakdown = document.getElementById('res-total-breakdown');
+        if (resTotalBreakdown) {
+            resTotalBreakdown.textContent = `$${cot.tarifa_total.toLocaleString('es-CO')} COP`;
+        }
 
         const gmapsBtn = document.getElementById('btn-google-maps');
         if (gmapsBtn) {
-            gmapsBtn.href = cot.google_maps_url;
+            gmapsBtn.href = cot.google_maps_url || '#';
         }
 
         emptyState.style.display = 'none';

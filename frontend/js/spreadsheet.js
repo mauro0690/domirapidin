@@ -56,17 +56,19 @@ window.RapidinSpreadsheet = (function() {
             const tr = document.createElement('tr');
             tr.dataset.index = index;
 
+            const sec = escapeHtml(row.sector || row.zona || 'SECTOR GENERAL');
+            const barrio = escapeHtml(row.barrio || '');
+            const base = row.tarifa_base || 6000;
+            const rec = row.recargo_distancia || 0;
+            const total = row.tarifa_total || (base + rec);
+
             tr.innerHTML = `
                 <td style="text-align: center; font-weight: 700; color: #64748b;">${index + 1}</td>
-                <td><input type="text" data-field="barrio" value="${escapeHtml(row.barrio)}"></td>
-                <td><input type="text" data-field="zona" value="${escapeHtml(row.zona)}"></td>
-                <td><input type="number" step="0.0001" data-field="latitud" value="${row.latitud}"></td>
-                <td><input type="number" step="0.0001" data-field="longitud" value="${row.longitud}"></td>
-                <td><input type="number" step="0.1" data-field="distancia_km" value="${row.distancia_km}"></td>
-                <td><input type="number" step="500" data-field="tarifa_base" value="${row.tarifa_base}"></td>
-                <td><input type="number" step="500" data-field="recargo_distancia" value="${row.recargo_distancia}"></td>
-                <td><input type="number" data-field="tarifa_total" value="${row.tarifa_total}" readonly style="font-weight:800; color:#1d4ed8; background-color:#eff6ff;"></td>
-                <td><input type="number" data-field="tiempo_entrega_min" value="${row.tiempo_entrega_min}"></td>
+                <td><input type="text" data-field="sector" value="${sec}"></td>
+                <td><input type="text" data-field="barrio" value="${barrio}"></td>
+                <td><input type="number" step="500" data-field="tarifa_base" value="${base}"></td>
+                <td><input type="number" step="500" data-field="recargo_distancia" value="${rec}"></td>
+                <td><input type="number" data-field="tarifa_total" value="${total}" readonly style="font-weight:800; color:#1d4ed8; background-color:#eff6ff;"></td>
                 <td style="text-align: center;">
                     <button type="button" class="btn-del-row" data-index="${index}" title="Eliminar Barrio">
                         <i class="fa-solid fa-trash-can"></i>
@@ -84,7 +86,6 @@ window.RapidinSpreadsheet = (function() {
         const tbody = document.getElementById('spreadsheet-tbody');
         if (!tbody) return;
 
-        // Auto-calcular tarifa_total cuando cambian tarifa_base o recargo_distancia
         tbody.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', (e) => {
                 const tr = e.target.closest('tr');
@@ -92,7 +93,7 @@ window.RapidinSpreadsheet = (function() {
                 const field = e.target.dataset.field;
                 let val = e.target.value;
 
-                if (field === 'tarifa_base' || field === 'recargo_distancia' || field === 'distancia_km' || field === 'latitud' || field === 'longitud' || field === 'tiempo_entrega_min') {
+                if (field === 'tarifa_base' || field === 'recargo_distancia') {
                     val = parseFloat(val) || 0;
                 }
 
@@ -108,7 +109,6 @@ window.RapidinSpreadsheet = (function() {
             });
         });
 
-        // Botones eliminar fila
         tbody.querySelectorAll('.btn-del-row').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idx = parseInt(e.currentTarget.dataset.index);
@@ -121,16 +121,11 @@ window.RapidinSpreadsheet = (function() {
 
     function addRow() {
         const newRow = {
-            id: currentData.length + 1,
+            sector: "SECTOR GENERAL",
             barrio: "Nuevo Barrio",
-            zona: "General",
-            latitud: 4.1488,
-            longitud: -73.6339,
-            distancia_km: 3.0,
             tarifa_base: 6000,
-            recargo_distancia: 2000,
-            tarifa_total: 8000,
-            tiempo_entrega_min: 20
+            recargo_distancia: 0,
+            tarifa_total: 6000
         };
         currentData.push(newRow);
         renderSpreadsheet(currentData);
@@ -148,8 +143,7 @@ window.RapidinSpreadsheet = (function() {
             });
             const res = await response.json();
             if (res.status === 'success') {
-                window.RapidinApp.showToast("✅ Base de datos (Hoja de cálculo CSV) guardada exitosamente en backend.");
-                // Recargar cotizador
+                window.RapidinApp.showToast("✅ Base de datos (Hoja de cálculo CSV) guardada exitosamente.");
                 window.RapidinApp.loadBarrios();
             } else {
                 window.RapidinApp.showToast("❌ Error al guardar en servidor.");
@@ -162,18 +156,18 @@ window.RapidinSpreadsheet = (function() {
 
     function exportCSV() {
         if (!currentData || currentData.length === 0) return;
-        const headers = ["id", "barrio", "zona", "latitud", "longitud", "distancia_km", "tarifa_base", "recargo_distancia", "tarifa_total", "tiempo_entrega_min"];
+        const headers = ["sector", "barrio", "tarifa_base", "recargo_distancia", "tarifa_total"];
         let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
 
         currentData.forEach(row => {
-            const rowValues = headers.map(h => `"${row[h]}"`);
+            const rowValues = headers.map(h => `"${row[h] !== undefined ? row[h] : (h === 'sector' ? (row['zona'] || '') : '')}"`);
             csvContent += rowValues.join(",") + "\n";
         });
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `tarifario_villavicencio_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `tarifario_${new Date().toISOString().slice(0,10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

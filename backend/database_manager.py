@@ -206,8 +206,7 @@ def load_clientes_db():
     return []
 
 def save_clientes_db(clientes_list):
-    """ Guarda la lista de clientes en PostgreSQL y en clientes.json local """
-    # Guardar local primero
+    """ Guarda la lista de clientes en PostgreSQL y en clientes.json local, eliminando de Supabase los removidos """
     try:
         with open(CLIENTES_FILE, 'w', encoding='utf-8') as f:
             json.dump(clientes_list, f, ensure_ascii=False, indent=2)
@@ -217,6 +216,21 @@ def save_clientes_db(clientes_list):
     conn = get_pg_connection()
     if conn:
         try:
+            active_ids = [str(c.get("id")).strip() for c in clientes_list if c.get("id")]
+            
+            # Eliminar en Supabase los clientes y sus tarifas que ya no existen en la lista activa
+            if active_ids:
+                formatted_ids = ", ".join([f"'{cid}'" for cid in active_ids])
+                deleted_rows = conn.run(f"SELECT slug FROM clientes WHERE id NOT IN ({formatted_ids});")
+                for d_row in deleted_rows:
+                    del_slug = d_row[0]
+                    if del_slug:
+                        conn.run(f"DELETE FROM tarifas WHERE cliente_slug = '{del_slug}';")
+                conn.run(f"DELETE FROM clientes WHERE id NOT IN ({formatted_ids});")
+            else:
+                conn.run("DELETE FROM tarifas;")
+                conn.run("DELETE FROM clientes;")
+
             for c in clientes_list:
                 slug_val = c.get("slug", c.get("nombre","").lower().replace(' ','_'))
                 user_val = c.get("usuario", f"user_{slug_val}")
@@ -248,9 +262,9 @@ def save_clientes_db(clientes_list):
                 direccion=c.get("direccion"), latitud=c.get("latitud"), longitud=c.get("longitud"),
                 foto_perfil=c.get("foto_perfil"), descripcion=c.get("descripcion"), categoria=c.get("categoria"))
             conn.close()
-            print("✅ Clientes sincronizados con la nube (Supabase / PostgreSQL).", file=sys.stderr)
+            print("✅ Clientes y eliminaciones sincronizados con Supabase / PostgreSQL.", file=sys.stderr)
         except Exception as e:
-            print(f"⚠️ Error al guardar clientes en la nube: {e}", file=sys.stderr)
+            print(f"⚠️ Error al guardar/eliminar clientes en la nube: {e}", file=sys.stderr)
 
 def get_pedidos_db():
     """ Carga pedidos desde la nube o desde pedidos.json local """

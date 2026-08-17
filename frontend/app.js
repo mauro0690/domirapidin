@@ -608,10 +608,21 @@ window.RapidinApp = (function () {
         });
 
         tbody.querySelectorAll('.btn-del-row').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const idx = parseInt(e.currentTarget.dataset.index);
+                const clientName = clientsData[idx] ? clientsData[idx].nombre : 'este negocio';
+                const confirmed = await showConfirmModal({
+                    title: 'Eliminar Comercio Aliado',
+                    message: `¿Estás seguro de eliminar el negocio '${clientName}'? Esta acción borrará la cuenta y sus tarifas en Supabase.`,
+                    icon: 'fa-trash-can',
+                    isDanger: true,
+                    confirmText: 'Eliminar Negocio'
+                });
+                if (!confirmed) return;
+
                 clientsData.splice(idx, 1);
                 renderClientsAdminTable(clientsData);
+                showToast(`🗑️ Negocio '${clientName}' removido de la lista. Recuerda hacer clic en "Guardar Cambios".`);
             });
         });
     }
@@ -642,9 +653,24 @@ window.RapidinApp = (function () {
         };
         clientsData.push(newClient);
         renderClientsAdminTable(clientsData);
+        showToast("✨ Nuevo registro añadido a la lista. Ingresa sus datos y haz clic en Guardar.");
     }
 
     async function saveClientsAdmin() {
+        const confirmed = await showConfirmModal({
+            title: 'Sincronizar y Guardar Negocios',
+            message: '¿Deseas guardar y publicar los cambios de los negocios aliados en Supabase PostgreSQL?',
+            icon: 'fa-cloud-arrow-up',
+            confirmText: 'Guardar y Sincronizar'
+        });
+        if (!confirmed) return;
+
+        const saveBtn = document.getElementById('btn-save-clients');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando con Supabase...';
+        }
+
         try {
             const response = await fetch('/api/clientes/save', {
                 method: 'POST',
@@ -653,14 +679,19 @@ window.RapidinApp = (function () {
             });
             const res = await response.json();
             if (res.status === 'success') {
-                showToast("✅ Base de datos de negocios guardada exitosamente.");
+                showToast("✅ Base de datos de negocios guardada y sincronizada exitosamente en la nube.");
                 loadRegisteredBusinesses();
             } else {
-                showToast("❌ Error al guardar negocios.");
+                showToast("❌ " + res.message);
             }
         } catch (err) {
             console.error(err);
             showToast("❌ Error de conexión con el servidor.");
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios de Negocios';
+            }
         }
     }
 
@@ -951,10 +982,11 @@ window.RapidinApp = (function () {
                 renderResultCard(selectedCotizacion);
                 const destData = {
                     ...selectedCotizacion.destino,
-                    tarifa_total: selectedCotizacion.tarifa_total,
-                    distancia_km: selectedCotizacion.distancia_km
+                    tarifa_total: selectedCotizacion.tarifa_total
                 };
-                window.RapidinMap.updateRoute(destData);
+                if (window.RapidinMap && window.RapidinMap.updateRoute) {
+                    window.RapidinMap.updateRoute(destData);
+                }
             } else {
                 showToast("⚠️ " + (data.message || "No se pudo realizar la cotización para el barrio seleccionado."));
             }
@@ -971,15 +1003,28 @@ window.RapidinApp = (function () {
 
         if (!resultCard || !emptyState) return;
 
-        document.getElementById('res-barrio-name').textContent = cot.destino.barrio;
-        document.getElementById('res-barrio-zona').textContent = `Zona ${cot.destino.zona}`;
+        const resBarrioName = document.getElementById('res-barrio-name');
+        if (resBarrioName) resBarrioName.textContent = cot.destino.barrio;
 
-        document.getElementById('res-price-amount').textContent = cot.tarifa_total.toLocaleString('es-CO');
-        document.getElementById('res-distancia').textContent = `${cot.distancia_km} km`;
-        document.getElementById('res-tiempo').textContent = `${cot.tiempo_entrega_min} min`;
+        const resBarrioZona = document.getElementById('res-barrio-zona');
+        if (resBarrioZona) {
+            resBarrioZona.textContent = cot.destino.sector || cot.destino.zona || 'SECTOR GENERAL';
+        }
+
+        const resPriceAmount = document.getElementById('res-price-amount');
+        if (resPriceAmount) resPriceAmount.textContent = cot.tarifa_total.toLocaleString('es-CO');
+
+        const resDist = document.getElementById('res-distancia');
+        if (resDist) resDist.textContent = cot.distancia_km !== undefined ? `${cot.distancia_km} km` : '';
+
+        const resTiempo = document.getElementById('res-tiempo');
+        if (resTiempo) resTiempo.textContent = cot.tiempo_entrega_min !== undefined ? `${cot.tiempo_entrega_min} min` : '';
 
         // Desglose de Tarifas y Recargos Especiales
-        document.getElementById('res-tarifa-barrio').textContent = `$${(cot.tarifa_barrio || cot.tarifa_total).toLocaleString('es-CO')} COP`;
+        const resTarifaBarrio = document.getElementById('res-tarifa-barrio');
+        if (resTarifaBarrio) {
+            resTarifaBarrio.textContent = `$${(cot.tarifa_barrio || cot.tarifa_total).toLocaleString('es-CO')} COP`;
+        }
 
         const resNocturno = document.getElementById('res-recargo-nocturno');
         if (resNocturno) {
@@ -1007,11 +1052,14 @@ window.RapidinApp = (function () {
             }
         }
 
-        document.getElementById('res-total-breakdown').textContent = `$${cot.tarifa_total.toLocaleString('es-CO')} COP`;
+        const resTotalBreakdown = document.getElementById('res-total-breakdown');
+        if (resTotalBreakdown) {
+            resTotalBreakdown.textContent = `$${cot.tarifa_total.toLocaleString('es-CO')} COP`;
+        }
 
         const gmapsBtn = document.getElementById('btn-google-maps');
         if (gmapsBtn) {
-            gmapsBtn.href = cot.google_maps_url;
+            gmapsBtn.href = cot.google_maps_url || '#';
         }
 
         emptyState.style.display = 'none';
@@ -1337,11 +1385,76 @@ window.RapidinApp = (function () {
         }
     }
 
+    function showConfirmModal({ title, message, icon = 'fa-triangle-exclamation', isDanger = false, confirmText = 'Sí, Confirmar' }) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('modal-confirm-dialog');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const msgEl = document.getElementById('confirm-modal-message');
+            const iconEl = document.getElementById('confirm-modal-icon');
+            const iconWrapper = document.getElementById('confirm-icon-wrapper');
+            const btnCancel = document.getElementById('btn-confirm-cancel');
+            const btnAccept = document.getElementById('btn-confirm-accept');
+
+            if (!modal || !btnAccept || !btnCancel) {
+                resolve(true);
+                return;
+            }
+
+            if (titleEl) titleEl.textContent = title || 'Confirmar Acción';
+            if (msgEl) msgEl.textContent = message || '¿Estás seguro de continuar?';
+            if (iconEl) iconEl.className = `fa-solid ${icon}`;
+            if (btnAccept) btnAccept.textContent = confirmText;
+
+            if (isDanger) {
+                if (iconWrapper) {
+                    iconWrapper.style.background = '#fee2e2';
+                    iconWrapper.style.color = '#dc2626';
+                }
+                if (btnAccept) btnAccept.style.background = '#dc2626';
+            } else {
+                if (iconWrapper) {
+                    iconWrapper.style.background = '#eff6ff';
+                    iconWrapper.style.color = '#2563eb';
+                }
+                if (btnAccept) btnAccept.style.background = '#2563eb';
+            }
+
+            modal.style.display = 'flex';
+
+            const cleanUp = () => {
+                modal.style.display = 'none';
+                btnAccept.removeEventListener('click', onAccept);
+                btnCancel.removeEventListener('click', onCancel);
+            };
+
+            const onAccept = () => {
+                cleanUp();
+                resolve(true);
+            };
+
+            const onCancel = () => {
+                cleanUp();
+                resolve(false);
+            };
+
+            btnAccept.addEventListener('click', onAccept);
+            btnCancel.addEventListener('click', onCancel);
+        });
+    }
+
     async function saveProfile() {
         if (!activeBusiness) {
             showToast('⚠️ Debes iniciar sesión para guardar tu perfil.');
             return;
         }
+
+        const confirmed = await showConfirmModal({
+            title: 'Actualizar Perfil Comercial',
+            message: '¿Deseas guardar los cambios de tu perfil y hacerlos visibles para tus clientes?',
+            icon: 'fa-store',
+            confirmText: 'Guardar Perfil'
+        });
+        if (!confirmed) return;
 
         const catSelect = document.getElementById('profile-categoria');
         const descTA = document.getElementById('profile-descripcion');
@@ -1359,7 +1472,7 @@ window.RapidinApp = (function () {
             payload.foto_perfil = profilePhotoBase64;
         }
 
-        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...'; }
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sincronizando Perfil...'; }
 
         try {
             const res = await fetch('/api/clientes/update-profile', {
@@ -1369,16 +1482,13 @@ window.RapidinApp = (function () {
             });
             const data = await res.json();
             if (data.status === 'success') {
-                // Update local activeBusiness
                 activeBusiness = { ...activeBusiness, ...data.cliente };
                 localStorage.setItem('rapidin_business', JSON.stringify(activeBusiness));
-                // Also update map origin address if changed
                 if (dirInput && dirInput.value) {
                     const addrEl = document.getElementById('origin-business-address');
                     if (addrEl) addrEl.textContent = dirInput.value;
                 }
-                showToast('✅ Perfil actualizado con éxito. ¡Tu tarjeta ya es visible para los visitantes!');
-                // Refresh visitor cards data
+                showToast('✅ Perfil actualizado con éxito en Supabase.');
                 loadRegisteredBusinesses();
             } else {
                 showToast(`❌ Error: ${data.message}`);
@@ -1429,6 +1539,7 @@ window.RapidinApp = (function () {
     return {
         showToast: showToast,
         loadBarrios: loadBarrios,
-        switchBusiness: switchBusiness
+        switchBusiness: switchBusiness,
+        showConfirmModal: showConfirmModal
     };
 })();
